@@ -3,9 +3,9 @@
 @section('title', 'Manajemen Proyek')
 
 @section('content')
-    <nav class="navbar" style="padding: 2rem;">
+    <nav class="navbar mobile-responsive" style="padding: 2rem;">
         <div class="nav-brand" style="color: var(--accent); font-size: 1.5rem;">
-            <i class="fas fa-layer-group"></i> Aplikasi Manajemen proyek
+            <i class="fas fa-layer-group"></i> Aplikasi Manajemen Proyek
         </div>
 
         <div class="nav-user">
@@ -21,30 +21,31 @@
             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                 @csrf
                 <button type="submit" class="btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
                 </button>
             </form>
         </div>
     </nav>
 
-    <div class="container" style="max-width: 1100px; padding-bottom: 5rem;">
+    <div class="container mobile-responsive" style="max-width: 1100px; padding-bottom: 5rem;">
 
-        <div class="section-header"
+        <div class="section-header mobile-header"
             style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-            <div>
-                <h2>Ruang Kerja Anda</h2>
-                <p>Pilih proyek aktif untuk mulai mengelola proyek.</p>
+
+            <div style="width: 100%;">
+                <h2 style="margin: 0; font-weight: 700;">Ruang Kerja Anda</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.8;">Pilih proyek aktif untuk mulai mengelola.</p>
             </div>
 
-            <div style="display: flex; gap: 10px;">
+            <div class="header-actions" style="display: flex; gap: 10px;">
                 @if (Auth::check() && in_array(Auth::user()->role, ['Super_Admin', 'Admin']))
                     <a href="{{ route('index') }}" class="btn btn-primary"
-                        style="width: auto; padding: 0.8rem 1.5rem; text-decoration: none; display: inline-flex; align-items: center;">
+                        style="width: auto; padding: 0.8rem 1.5rem; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap;">
                         <i class="fas fa-users-cog" style="margin-right: 8px;"></i> Kelola User
                     </a>
 
                     <a href="{{ route('projects.create') }}" class="btn btn-primary"
-                        style="width: auto; padding: 0.8rem 1.5rem; text-decoration: none; display: inline-flex; align-items: center;">
+                        style="width: auto; padding: 0.8rem 1.5rem; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap;">
                         <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Tambah Proyek
                     </a>
                 @endif
@@ -93,5 +94,4 @@
 
         </div>
     </div>
-
 @endsection

@@ -12,11 +12,18 @@
 </head>
 
 <body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="layout-wrapper">
 
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
+            <button class="close-sidebar-btn" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+
             <div class="sidebar-header text-center"
-                style="padding: 20px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                style="padding: 20px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative;">
 
                 @if (session('active_project_logo'))
                     <img src="{{ asset('storage/' . session('active_project_logo')) }}" alt="Logo Project"
@@ -27,7 +34,6 @@
                         {{ session('active_project_name') ?? 'Projek' }}
                     </h4>
                 @endif
-
             </div>
 
             <nav class="sidebar-nav">
@@ -82,11 +88,16 @@
 
         <div class="main-content">
             <header class="navbar">
-                <div class="nav-brand">@yield('title')</div>
+                <div class="nav-left">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="nav-brand">@yield('title')</div>
+                </div>
 
                 <div class="nav-user">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <strong style="color: #ffffff; font-size: 0.95rem;">
+                        <strong style="color: var(--text-on-main); font-size: 0.95rem;">
                             {{ Auth::user()->name }}
                         </strong>
                         <span class="nav-badge" style="margin: 0;">{{ Auth::user()->role }}</span>
@@ -97,7 +108,7 @@
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="btn-logout" title="Keluar Aplikasi">
-                            <i class="fas fa-sign-out-alt"></i> Logout
+                            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
                         </button>
                     </form>
                 </div>
@@ -108,6 +119,23 @@
             </main>
         </div>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const body = document.body;
+
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+
+            if (sidebar.classList.contains('active')) {
+                body.classList.add('no-scroll');
+            } else {
+                body.classList.remove('no-scroll');
+            }
+        }
+    </script>
 </body>
 
 </html>

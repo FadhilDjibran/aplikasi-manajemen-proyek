@@ -84,12 +84,12 @@
                             </td>
                             <td style="padding: 10px 15px;">
                                 <span
-                                    style="background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">
+                                    style="background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 10px; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">
                                     {{ $lead->sumber_lead }}
                                 </span>
                             </td>
                             <td
-                                style="padding: 10px 15px; text-align: center; white-space: nowrap; vertical-align: middle;">
+                                style="padding: 10px 15px; text-align: center; white-space: nowrap; vertical-align: middle; font-size: 0.75rem;">
                                 @php
                                     $badgeStyle = match ($lead->status_lead) {
                                         'Cold Lead'
@@ -110,7 +110,7 @@
                                     <div
                                         style="position: relative; display: inline-block; width: 100%; white-space: nowrap; vertical-align: middle;">
                                         <select name="status_lead" onchange="this.form.submit()"
-                                            style="{{ $badgeStyle }} cursor: pointer; border-radius: 6px; padding: 4px 20px 4px 8px; font-size: 0.75rem; font-weight: 700; appearance: none; -webkit-appearance: none; outline: none; width: 100%; text-align: center;">
+                                            style="{{ $badgeStyle }} cursor: pointer; border-radius: 6px; padding: 4px 20px 4px 8px; font-size: 0.5rem; font-weight: 700; appearance: none; -webkit-appearance: none; outline: none; width: 100%; text-align: center;">
                                             @foreach (['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Tidak Prospek', 'Gagal Closing'] as $status)
                                                 <option value="{{ $status }}"
                                                     {{ $lead->status_lead == $status ? 'selected' : '' }}
