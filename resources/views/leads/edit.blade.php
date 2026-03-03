@@ -47,14 +47,41 @@
             </h4>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                @php
+                    $standardSources = [
+                        'Meta (FB / IG)',
+                        'Tiktok',
+                        'Website',
+                        'Walk In',
+                        'Agen',
+                        'Brosur',
+                        'Banner',
+                        'Freelance',
+                        'Referral',
+                    ];
+                    $isCustomSource = !in_array($lead->sumber_lead, $standardSources) && !empty($lead->sumber_lead);
+                @endphp
+
                 <div class="form-group">
                     <label class="form-label">Sumber Lead <span style="color:red">*</span></label>
-                    <select name="sumber_lead" class="form-control" required>
-                        @foreach (['Meta (FB / IG)', 'Tiktok', 'Website', 'Walk In', 'Agen', 'Brosur', 'Banner'] as $sumber)
+
+                    <select name="sumber_lead" id="sumber_lead" class="form-control" required
+                        onchange="toggleCustomSumber()">
+                        <option value="">-- Pilih Sumber --</option>
+
+                        @foreach ($standardSources as $sumber)
                             <option value="{{ $sumber }}" {{ $lead->sumber_lead == $sumber ? 'selected' : '' }}>
-                                {{ $sumber }}</option>
+                                {{ $sumber }}
+                            </option>
                         @endforeach
+
+                        <option value="Lainnya" {{ $isCustomSource ? 'selected' : '' }}>Lainnya (Ketik Sendiri)</option>
                     </select>
+
+                    <input type="text" name="sumber_lead_custom" id="sumber_lead_custom" class="form-control"
+                        style="display: {{ $isCustomSource ? 'block' : 'none' }}; margin-top: 10px;"
+                        placeholder="Ketikkan sumber lead lainnya..."
+                        value="{{ $isCustomSource ? $lead->sumber_lead : '' }}" {{ $isCustomSource ? 'required' : '' }}>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tipe Rumah Minat</label>
@@ -149,4 +176,18 @@
         </div>
     </div>
     <script src="{{ asset('js/money-format.js') }}"></script>
+    <script>
+        function toggleCustomSumber() {
+            var selectBox = document.getElementById('sumber_lead');
+            var customInput = document.getElementById('sumber_lead_custom');
+
+            if (selectBox.value === 'Lainnya') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+            }
+        }
+    </script>
 @endsection

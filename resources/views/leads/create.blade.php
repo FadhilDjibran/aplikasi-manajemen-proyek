@@ -44,7 +44,9 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
                     <label class="form-label">Sumber Lead <span style="color:red">*</span></label>
-                    <select name="sumber_lead" class="form-control" required>
+                    <select name="sumber_lead" id="sumber_lead" class="form-control" required
+                        onchange="toggleCustomSumber()">
+                        <option value="">-- Pilih Sumber --</option>
                         <option value="Meta (FB / IG)">Meta (FB / IG)</option>
                         <option value="Tiktok">Tiktok</option>
                         <option value="Website">Website</option>
@@ -52,7 +54,12 @@
                         <option value="Agen">Agen</option>
                         <option value="Brosur">Brosur</option>
                         <option value="Banner">Banner</option>
+                        <option value="Banner">Freelance</option>
+                        <option value="Banner">Referral</option>
+                        <option value="Lainnya">Lainnya</option>
                     </select>
+                    <input type="text" name="sumber_lead_custom" id="sumber_lead_custom" class="form-control"
+                        style="display: none; margin-top: 10px;" placeholder="Tuliskan sumber lead...">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tipe Rumah Minat</label>
@@ -128,4 +135,18 @@
         </form>
     </div>
     <script src="{{ asset('js/money-format.js') }}"></script>
+    <script>
+        function toggleCustomSumber() {
+            var selectBox = document.getElementById('sumber_lead');
+            var customInput = document.getElementById('sumber_lead_custom');
+            if (selectBox.value === 'Lainnya') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+    </script>
 @endsection

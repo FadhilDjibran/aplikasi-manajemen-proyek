@@ -14,7 +14,7 @@ return new class extends Migration
         $table->date('tgl_masuk')->nullable();
         $table->string('nama_lead', 100);
         $table->string('no_whatsapp', 20)->nullable();
-        $table->enum('sumber_lead', ['Meta (FB / IG)', 'Tiktok', 'Website', 'Walk In', 'Agen', 'Brosur', 'Banner'])->nullable();
+        $table->string('sumber_lead')->nullable()->change();
 
         $table->unsignedInteger('id_tipe_rumah_minat')->nullable();
         $table->foreign('id_tipe_rumah_minat')->references('id_tipe')->on('tipe_rumah');

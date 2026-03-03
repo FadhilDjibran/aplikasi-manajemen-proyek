@@ -1105,3 +1105,75 @@ a:hover {
         margin: 0 !important;
     }
 }
+
+.custom-pagination-wrapper {
+    padding: 1rem 1.5rem;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.custom-pagination-wrapper nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.custom-pagination-wrapper p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.custom-pagination-wrapper .relative.z-0.inline-flex,
+.custom-pagination-wrapper ul.pagination {
+    display: inline-flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    box-shadow: none;
+}
+
+.custom-pagination-wrapper a,
+.custom-pagination-wrapper span[aria-disabled="true"] span,
+.custom-pagination-wrapper span[aria-current="page"] span,
+.custom-pagination-wrapper .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px !important;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.custom-pagination-wrapper a:hover,
+.custom-pagination-wrapper .page-link:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+
+.custom-pagination-wrapper span[aria-current="page"] span,
+.custom-pagination-wrapper .active .page-link {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    z-index: 2;
+}
+
+.custom-pagination-wrapper svg {
+    width: 1.2rem;
+    height: 1.2rem;
+}

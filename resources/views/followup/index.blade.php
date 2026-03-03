@@ -102,17 +102,20 @@
                                     @endif
                                 </div>
                             </td>
-                            <td style="padding: 15px;">
+                            <td style="padding: 15px 15px 15px 15px; width: 1%; white-space: nowrap;">
                                 <strong style="font-size: 0.95rem; color: #1e293b;">{{ $lead->nama_lead }}</strong><br>
                                 <div style="margin-top: 4px;">
                                     <small
-                                        style="color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">ID:
-                                        {{ $lead->id_lead }}</small>
+                                        style="color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                                        ID: {{ $lead->id_lead }}
+                                    </small>
                                 </div>
-                                <small style="color: #64748b; display: block; margin-top: 4px;"><i class="fab fa-whatsapp"
-                                        style="color: #22c55e;"></i> {{ $lead->no_whatsapp }}</small>
+                                <small style="color: #64748b; display: block; margin-top: 4px;">
+                                    <i class="fab fa-whatsapp" style="color: #22c55e;"></i> {{ $lead->no_whatsapp }}
+                                </small>
                             </td>
-                            <td style="padding: 15px;">
+
+                            <td style="padding: 0px;">
                                 <div style="font-size: 0.85rem; color: #334155; font-weight: 600;">
                                     <i class="fas fa-user-circle" style="color: #cbd5e1; margin-right: 5px;"></i>
                                     {{ $picName }}
@@ -258,6 +261,16 @@
                 </table>
             </div>
         </div>
+    </div>
+    <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+        <form action="{{ route('leads.trigger_update') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-primary"
+                style="display: flex; align-items: center; gap: 8px; font-weight: 600;"
+                onclick="return confirm('Proses ini akan mengecek tanggal follow up dan menurunkan status lead yang tidak aktif. Lanjutkan?')">
+                <i class="fas fa-sync-alt"></i> Update Status
+            </button>
+        </form>
     </div>
 
     <script>

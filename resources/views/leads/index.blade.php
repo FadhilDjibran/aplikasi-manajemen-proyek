@@ -65,31 +65,36 @@
                             $isWarmHot = in_array($lead->status_lead, ['Warm Lead', 'Hot Prospek']);
                         @endphp
                         <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
-                            <td style="padding: 10px 15px; color: #94a3b8;">{{ $lead->id_lead }}</td>
-                            <td style="padding: 10px 15px;">
-                                <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem; margin-bottom: 2px;">
-                                    {{ $lead->nama_lead }}</div>
-                                <a href="https://wa.me/{{ $lead->no_whatsapp }}" target="_blank"
-                                    style="text-decoration: none; color: #64748b; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+                            <td style="padding: 6px 10px; color: #94a3b8; font-size: 0.8rem;">{{ $lead->id_lead }}</td>
+
+                            <td style="padding: 6px 10px;">
+                                <div style="font-weight: 700; color: #1e293b; font-size: 0.85rem; margin-bottom: 0;">
+                                    {{ $lead->nama_lead }}
+                                </div>
+                                <a href="" target="_blank"
+                                    style="text-decoration: none; color: #64748b; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;">
                                     <i class="fab fa-whatsapp" style="color: #22c55e;"></i> {{ $lead->no_whatsapp }}
-                                </a>
                             </td>
-                            <td style="padding: 10px 15px;">
-                                <div style="display: flex; align-items: center; gap: 6px; color: #475569;">
-                                    <i class="fas fa-user-circle" style="color: #cbd5e1; font-size: 0.9rem;"></i>
+
+                            <td style="padding: 6px 10px;">
+                                <div
+                                    style="display: flex; align-items: center; gap: 4px; color: #475569; font-size: 0.8rem;">
+                                    <i class="fas fa-user-circle" style="color: #cbd5e1;"></i>
                                     <span style="font-weight: 500;">
                                         {{ $lead->pic->nama_pic ?? '-' }}
                                     </span>
                                 </div>
                             </td>
-                            <td style="padding: 10px 15px;">
+
+                            <td style="padding: 6px 10px; width: 1%; white-space: nowrap;">
                                 <span
-                                    style="background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-size: 10px; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">
-                                    {{ $lead->sumber_lead }}
+                                    style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 10px; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600; white-space: nowrap;">
+                                    {{ $lead->sumber_lead ?: '-' }}
                                 </span>
                             </td>
+
                             <td
-                                style="padding: 10px 15px; text-align: center; white-space: nowrap; vertical-align: middle; font-size: 0.75rem;">
+                                style="padding: 6px 10px 6px 2px; text-align: left; white-space: nowrap; vertical-align: middle; width: 1%;">
                                 @php
                                     $badgeStyle = match ($lead->status_lead) {
                                         'Cold Lead'
@@ -105,12 +110,19 @@
                                         default => 'background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;',
                                     };
                                 @endphp
-                                <form action="{{ route('leads.update', $lead->id_lead) }}" method="POST">
+
+                                <form action="{{ route('leads.update', $lead->id_lead) }}" method="POST"
+                                    style="margin: 0; width: auto; display: inline-block;">
                                     @csrf @method('PUT')
+
+                                    @foreach (request()->query() as $key => $value)
+                                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                    @endforeach
+
                                     <div
-                                        style="position: relative; display: inline-block; width: 100%; white-space: nowrap; vertical-align: middle;">
+                                        style="position: relative; display: inline-block; white-space: nowrap; min-width: 110px;">
                                         <select name="status_lead" onchange="this.form.submit()"
-                                            style="{{ $badgeStyle }} cursor: pointer; border-radius: 6px; padding: 4px 20px 4px 8px; font-size: 0.5rem; font-weight: 700; appearance: none; -webkit-appearance: none; outline: none; width: 100%; text-align: center;">
+                                            style="{{ $badgeStyle }} cursor: pointer; border-radius: 6px; padding: 2px 16px 2px 6px; font-size: 0.7rem; font-weight: 700; appearance: none; outline: none; width: 100%; text-align: center;">
                                             @foreach (['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Tidak Prospek', 'Gagal Closing'] as $status)
                                                 <option value="{{ $status }}"
                                                     {{ $lead->status_lead == $status ? 'selected' : '' }}
@@ -124,16 +136,21 @@
                                     </div>
                                 </form>
                             </td>
-                            <td style="padding: 10px 15px; color: #64748b; white-space: nowrap; vertical-align: middle;">
+
+                            <td
+                                style="padding: 6px 10px; color: #64748b; white-space: nowrap; vertical-align: middle; font-size: 0.8rem;">
                                 {{ \Carbon\Carbon::parse($lead->tgl_masuk)->format('d M Y') }}
                             </td>
-                            <td style="padding: 10px 15px;">
-                                <p style="font-size: 0.8rem; color: #64748b; margin: 0; line-height: 1.4;">
-                                    {{ $lead->catatan ? Str::limit($lead->catatan, 30) : '-' }}
+
+                            <td style="padding: 6px 10px; max-width: 150px;">
+                                <p style="font-size: 0.75rem; color: #64748b; margin: 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                    title="{{ $lead->catatan }}">
+                                    {{ $lead->catatan ? $lead->catatan : '-' }}
                                 </p>
                             </td>
-                            <td style="padding: 10px 15px; text-align: center;">
-                                <div style="display: flex; gap: 6px; justify-content: center;">
+
+                            <td style="padding: 6px 10px; text-align: center; vertical-align: middle;">
+                                <div style="display: flex; gap: 4px; justify-content: center;">
                                     @php
                                         $isWarmHot = in_array($lead->status_lead, [
                                             'Warm Prospek',
@@ -144,26 +161,27 @@
                                         $isSuperAdmin = auth()->user()->role === 'Super_Admin';
                                         $canExecute = $isWarmHot && ($isSuperAdmin || $isMyLead);
                                     @endphp
+
                                     @if ($canExecute)
                                         <a href="{{ route('followup.followup_execute', $lead->id_lead) }}" class="btn"
-                                            style="color: #ea580c; background: #fff7ed; padding: 6px 10px; font-size: 0.8rem; border: 1px solid #ffedd5; border-radius: 6px; transition: 0.2s;"
+                                            style="color: #ea580c; background: #fff7ed; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #ffedd5; border-radius: 4px;"
                                             title="Eksekusi">
                                             <i class="fas fa-play"></i>
                                         </a>
                                     @elseif($isWarmHot)
                                         <button class="btn" disabled
-                                            style="color: #9ca3af; background: #f3f4f6; padding: 6px 10px; font-size: 0.8rem; border: 1px solid #e5e7eb; border-radius: 6px; cursor: not-allowed;"
+                                            style="color: #9ca3af; background: #f3f4f6; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #e5e7eb; border-radius: 4px; cursor: not-allowed;"
                                             title="Hanya PIC atau Super Admin yang dapat mengeksekusi">
                                             <i class="fas fa-play"></i>
                                         </button>
                                     @endif
                                     <a href="{{ route('leads.show', $lead->id_lead) }}" class="btn"
-                                        style="color: #2563eb; background: #eff6ff; padding: 6px 10px; font-size: 0.8rem; border: 1px solid #dbeafe; border-radius: 6px; transition: 0.2s;"
+                                        style="color: #2563eb; background: #eff6ff; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #dbeafe; border-radius: 4px;"
                                         title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ route('leads.edit', $lead->id_lead) }}" class="btn"
-                                        style="color: #059669; background: #ecfdf5; padding: 6px 10px; font-size: 0.8rem; border: 1px solid #bbf7d0; border-radius: 6px; transition: 0.2s;"
+                                        style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;"
                                         title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
@@ -172,19 +190,28 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center" style="padding: 4rem; color: #94a3b8;">
+                            <td colspan="8" class="text-center" style="padding: 3rem; color: #94a3b8;">
                                 <i class="fas fa-inbox"
-                                    style="font-size: 2.5rem; display: block; margin-bottom: 1rem; opacity: 0.3;"></i>
-                                <span style="font-size: 1rem;">Tidak ada data lead ditemukan.</span>
+                                    style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.3;"></i>
+                                <span style="font-size: 0.9rem;">Tidak ada data lead ditemukan.</span>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-
-        <div style="padding: 1.5rem; border-top: 1px solid #f1f5f9;">
+        <div class="custom-pagination-wrapper">
             {{ $leads->withQueryString()->links() }}
         </div>
+    </div>
+    <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+        <form action="{{ route('leads.trigger_update') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-primary"
+                style="display: flex; align-items: center; gap: 8px; font-weight: 600;"
+                onclick="return confirm('Proses ini akan mengecek tanggal follow up dan menurunkan status lead yang tidak aktif. Lanjutkan?')">
+                <i class="fas fa-sync-alt"></i> Update Status
+            </button>
+        </form>
     </div>
 @endsection

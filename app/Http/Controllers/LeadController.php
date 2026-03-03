@@ -9,6 +9,7 @@ use App\Models\PicMarketing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Artisan;
 
 class LeadController extends Controller
 {
@@ -32,7 +33,7 @@ class LeadController extends Controller
             $query->where('status_lead', $request->status_filter);
         }
 
-        $leads = $query->orderBy('created_at', 'desc')
+        $leads = $query->orderBy('id_lead', 'desc')
                     ->paginate(10);
 
         return view('leads.index', compact('leads'));
@@ -56,6 +57,7 @@ class LeadController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
             'nama_lead'         => 'required|string|max:100',
             'no_whatsapp'       => 'required|string|max:20',
@@ -73,12 +75,17 @@ class LeadController extends Controller
             ? str_replace('.', '', $request->perkiraan_budget)
             : null;
 
+        $sumberLead = $request->sumber_lead;
+        if ($sumberLead === 'Lainnya') {
+            $sumberLead = $request->sumber_lead_custom;
+        }
+
         Lead::create([
             'id_lead'               => $newId,
             'project_id'            => Session::get('active_project_id'),
             'nama_lead'             => $request->nama_lead,
             'no_whatsapp'           => $request->no_whatsapp,
-            'sumber_lead'           => $request->sumber_lead,
+            'sumber_lead'           => $sumberLead,
             'id_tipe_rumah_minat'   => $request->id_tipe,
             'kota_domisili'         => $request->kota_domisili,
             'rencana_pembayaran'    => $request->rencana_pembayaran,
@@ -122,6 +129,12 @@ class LeadController extends Controller
 
         $data = $request->all();
 
+        $sumberLead = $request->sumber_lead;
+        if ($sumberLead === 'Lainnya') {
+            $sumberLead = $request->sumber_lead_custom;
+        }
+        $data['sumber_lead'] = $sumberLead;
+
         if ($request->has('perkiraan_budget')) {
             $data['perkiraan_budget'] = $request->perkiraan_budget
                 ? str_replace('.', '', $request->perkiraan_budget)
@@ -136,8 +149,7 @@ class LeadController extends Controller
             $data['alasan_gagal'] = $request->alasan_gagal;
             $data['catatan_gagal'] = $request->catatan_gagal;
             $data['tgl_gagal'] = now();
-        }
-        else {
+        } else {
             $data['alasan_gagal'] = null;
             $data['catatan_gagal'] = null;
             $data['tgl_gagal'] = null;
@@ -153,14 +165,14 @@ class LeadController extends Controller
             if (in_array($oldStatus, ['Warm Lead', 'Hot Prospek']) &&
                 in_array($newStatus, ['Cold Lead', 'Gagal Closing'])) {
 
-                PicMarketing::where('id_pic', $lead->id_pic)->increment('down_convert');
-            }
+                \App\Models\PicMarketing::where('id_pic', $lead->id_pic)->increment('down_convert');
+            } elseif ($oldStatus == 'Warm Lead' && $newStatus == 'Hot Prospek') {
 
-            elseif ($oldStatus == 'Warm Lead' && $newStatus == 'Hot Prospek') {
-
-                PicMarketing::where('id_pic', $lead->id_pic)->increment('up_convert');
+                \App\Models\PicMarketing::where('id_pic', $lead->id_pic)->increment('up_convert');
             }
         }
+
+        $pesan = "Data lead berhasil diperbarui.";
 
         if ($newStatus == 'Warm Lead' && $oldStatus != 'Warm Lead') {
             $existingFollowUp = \App\Models\FollowUp::where('id_lead', $id)
@@ -196,11 +208,11 @@ class LeadController extends Controller
             }
         } elseif ($newStatus == 'Gagal Closing') {
             $pesan = "Lead ditandai sebagai Gagal Closing.";
-        } else {
-            $pesan = "Data lead berhasil diperbarui.";
         }
 
-        return redirect()->route('leads.index')->with('success', $pesan);
+        $queryParams = $request->except(['_token', '_method', 'status_lead', 'sumber_lead_custom']);
+
+        return redirect()->route('leads.index', $queryParams)->with('success', $pesan);
     }
 
     public function destroy($id)
@@ -222,5 +234,16 @@ class LeadController extends Controller
     {
         $lead = Lead::with(['tipeRumah', 'picMarketing'])->findOrFail($id);
         return view('leads.show', compact('lead'));
+    }
+
+    public function triggerUpdateStatus()
+    {
+        try {
+            Artisan::call('leads:update-status');
+            $output = Artisan::output();
+            return redirect()->back()->with('success', 'Update status otomatis berhasil dijalankan secara manual.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menjalankan update: ' . $e->getMessage());
+        }
     }
 }

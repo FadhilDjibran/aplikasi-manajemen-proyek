@@ -11,48 +11,75 @@ class FollowupsImportSeeder extends Seeder
 {
     public function run()
     {
-        $csvFile = database_path('seeders/CSV Followup.csv');
+        $csvFile = database_path('seeders/CSV Followup new.csv');
 
         if (!file_exists($csvFile)) {
-            $this->command->error("File CSV tidak ditemukan.");
+            $this->command->error("File CSV tidak ditemukan di: $csvFile");
             return;
         }
 
         $file = fopen($csvFile, 'r');
-        fgetcsv($file, 1000, ';'); // Lewati Header
+        fgetcsv($file, 2000, ';'); // Lewati Header baris pertama
 
-        $this->command->info('Mulai import data beserta Tanggal Follow Up Berikutnya...');
+        $this->command->info('Mulai import data Follow Up...');
 
-        while (($row = fgetcsv($file, 1000, ';')) !== false) {
+        $count = 0;
+        while (($row = fgetcsv($file, 2000, ';')) !== false) {
             $idLead = trim($row[0]);
+
+            // Lewati jika ID Lead kosong
             if (empty($idLead)) continue;
 
-            // Pastikan Lead-nya ada
-            if (!Lead::where('id_lead', $idLead)->exists()) continue;
+            // Pastikan Lead-nya ada di database leads
+            if (!Lead::where('id_lead', $idLead)->exists()) {
+                // Opsional: Buka komen di bawah jika ingin melihat lead mana yang di-skip
+                // $this->command->warn("Lead ID $idLead tidak ditemukan, skip followup.");
+                continue;
+            }
 
-            // 1. Parsing TANGGAL FOLLOW UP (Format Excel: DD/MM/YYYY)
+            // 1. Parsing TANGGAL FOLLOW UP (Format CSV: DD/MM/YYYY)
             $tglFollowUp = null;
             if (!empty(trim($row[2]))) {
                 try {
                     $tglFollowUp = Carbon::createFromFormat('d/m/Y', trim($row[2]))->format('Y-m-d');
                 } catch (\Exception $e) {
-                    $tglFollowUp = null;
+                    // Fallback jika format meleset
+                    try {
+                        $tglFollowUp = Carbon::parse(trim($row[2]))->format('Y-m-d');
+                    } catch (\Exception $e2) {
+                        $tglFollowUp = null;
+                    }
                 }
             }
 
-            // Jika tanggal utama kosong/gagal, jadikan hari ini
+            // Jika tanggal utama kosong/gagal, defaultkan hari ini
             if (!$tglFollowUp) {
                 $tglFollowUp = Carbon::now()->format('Y-m-d');
             }
 
-            // 2. Parsing TANGGAL FU BERIKUTNYA (Format Excel: MM/DD/YYYY)
-            // Ini akan memproses data "12/8/2025" menjadi 8 Desember 2025
+            // 2. Parsing JAM (Format CSV: 4:00:00 PM)
+            $jamFollowUp = null;
+            if (!empty(trim($row[3]))) {
+                try {
+                    // strtotime aman untuk mengubah '4:00:00 PM' ke format '16:00:00'
+                    $jamFollowUp = date('H:i:s', strtotime(trim($row[3])));
+                } catch (\Exception $e) {
+                    $jamFollowUp = null;
+                }
+            }
+
+            // 3. Mapping Channel
+            $channel = trim($row[4]);
+            if (strtoupper($channel) == 'WA') $channel = 'Whatsapp';
+            elseif (empty($channel)) $channel = null;
+
+            // 4. Parsing TANGGAL FU BERIKUTNYA (Format CSV: MM/DD/YYYY)
             $tglNext = null;
             if (!empty(trim($row[8]))) {
                 try {
+                    // Spesifik ke format US sesuai CSV (contoh: 12/8/2025)
                     $tglNext = Carbon::createFromFormat('m/d/Y', trim($row[8]))->format('Y-m-d');
                 } catch (\Exception $e) {
-                    // Fallback jika ada format campuran
                     try {
                         $tglNext = Carbon::parse(trim($row[8]))->format('Y-m-d');
                     } catch (\Exception $e2) {
@@ -61,45 +88,40 @@ class FollowupsImportSeeder extends Seeder
                 }
             }
 
-            // 3. Parsing JAM
-            $jamFollowUp = null;
-            if (!empty(trim($row[3]))) {
-                try {
-                    $jamFollowUp = Carbon::parse(trim($row[3]))->format('H:i:s');
+            // 5. Tanggal Survey
+            $tglSurvey = null;
+            if (!empty(trim($row[11]))) {
+                 try {
+                     // Asumsi format sama dengan tgl followup utama
+                    $tglSurvey = Carbon::createFromFormat('d/m/Y', trim($row[11]))->format('Y-m-d');
                 } catch (\Exception $e) {
-                    $jamFollowUp = null;
+                    $tglSurvey = null;
                 }
             }
 
-            // 4. Mapping Channel
-            $channel = trim($row[4]);
-            if (strtoupper($channel) == 'WA') $channel = 'Whatsapp';
-            elseif (empty($channel)) $channel = null;
-
-            // 5. Simpan Data ke Database
+            // 6. Simpan Data ke Database
             FollowUp::updateOrCreate(
                 [
                     'id_lead'       => $idLead,
                     'tgl_follow_up' => $tglFollowUp,
                 ],
                 [
+                    'project_id'               => 1,
+                    'id_pic'                   => 1,
                     'jam_follow_up'            => $jamFollowUp,
                     'channel_follow_up'        => $channel,
                     'hasil_follow_up'          => !empty($row[5]) ? trim($row[5]) : null,
-                    'status_minat_follow_up'   => !empty($row[6]) ? trim($row[6]) : 'Mulai Tertarik',
                     'rencana_tindak_lanjut'    => !empty($row[7]) ? trim($row[7]) : null,
-
-                    // MENGIMPOR KEMBALI TANGGAL NEXT FU
                     'tgl_follow_up_berikutnya' => $tglNext,
-
-                    'status_follow_up'         => !empty($row[9]) ? trim($row[9]) : 'Proses Follow Up',
-                    'tgl_survey'               => null,
+                    'status_follow_up'         => !empty($row[9]) ? trim($row[9]) : 'Proses Follow Up', // Default Selesai
+                    'tgl_survey'               => $tglSurvey,
                     'catatan'                  => !empty($row[13]) ? trim($row[13]) : null,
                 ]
             );
+            $count++;
         }
 
         fclose($file);
-        $this->command->info('Import selesai! Tanggal FU Berikutnya berhasil diproses.');
+        $this->command->info("Import selesai! Berhasil memproses $count data Follow Up.");
     }
 }

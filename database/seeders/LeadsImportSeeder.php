@@ -6,13 +6,12 @@ use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 use App\Models\Lead;
 use App\Models\TipeRumah;
-use App\Models\PicMarketing;
 
 class LeadsImportSeeder extends Seeder
 {
     public function run()
     {
-        $csvFile = database_path('seeders/CSV Lead.csv');
+        $csvFile = database_path('seeders/CSV Lead new.csv');
 
         if (!file_exists($csvFile)) {
             $this->command->error("File CSV tidak ditemukan di: $csvFile");
@@ -20,78 +19,84 @@ class LeadsImportSeeder extends Seeder
         }
 
         $file = fopen($csvFile, 'r');
-        fgetcsv($file, 1000, ';'); // Skip Header 1
-        fgetcsv($file, 1000, ';'); // Skip Header 2
 
-        $this->command->info('Mulai proses import data...');
+        fgetcsv($file, 2000, ';');
+        fgetcsv($file, 2000, ';');
 
-        while (($row = fgetcsv($file, 1000, ';')) !== false) {
+        $this->command->info('Mulai proses import data Leads...');
 
-            // Skip jika data ID atau Nama kosong
-            if (empty($row[0]) || empty($row[2])) continue;
+        $count = 0;
+        while (($row = fgetcsv($file, 2000, ';')) !== false) {
 
-            // 1. Parsing Tanggal
-            try {
-                $tglMasuk = Carbon::parse($row[1])->format('Y-m-d');
-            } catch (\Exception $e) {
-                $tglMasuk = now();
-            }
+            if (empty($row[0]) || trim($row[0]) == '') continue;
 
-            // 2. Mapping Status (On Progress -> Cold Prospek)
-            $statusLead = trim($row[7]);
-            if ($statusLead == 'On Progress') $statusLead = 'Cold Prospek';
-            if ($statusLead == 'Batal Booking') $statusLead = 'Tidak Deal';
+            $rawDate = trim($row[1]);
+            $tglMasuk = $this->parseIndonesianDate($rawDate);
 
-            $validStatuses = ['Tidak Prospek', 'Cold Prospek', 'Hot Prospek', 'Deal', 'Tidak Deal'];
+            $statusLead = trim($row[7] ?? 'Cold Lead');
+            $validStatuses = ['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Tidak Prospek', 'Gagal Closing'];
+
             if (!in_array($statusLead, $validStatuses)) {
-                $statusLead = 'Cold Prospek';
+                $statusLead = 'Cold Lead';
             }
 
-            // 3. Foreign Key: Tipe Rumah
             $tipeId = null;
-            if (!empty($row[5])) {
+            $namaTipe = trim($row[5] ?? '');
+            if (!empty($namaTipe)) {
                 $tipe = TipeRumah::firstOrCreate(
-                    ['nama_tipe' => trim($row[5])],
+                    ['nama_tipe' => $namaTipe],
                     ['project_id' => 1]
                 );
                 $tipeId = $tipe->id_tipe;
             }
 
-            // 4. Foreign Key: PIC Marketing
-            $picId = null;
-            if (!empty($row[10])) {
-                $pic = PicMarketing::firstOrCreate(['nama_pic' => trim($row[10])]);
-                $picId = $pic->id_pic;
-            }
-
-            // 5. Simpan Data Lead
             Lead::updateOrCreate(
                 ['id_lead' => trim($row[0])],
                 [
                     'project_id'          => 1,
                     'tgl_masuk'           => $tglMasuk,
                     'nama_lead'           => trim($row[2]),
-                    'no_whatsapp'         => preg_replace('/[^0-9]/', '', $row[3]),
-
-                    // Fix Sumber Lead (Null jika kosong)
+                    'no_whatsapp'         => $this->cleanPhoneNumber($row[3] ?? ''),
                     'sumber_lead'         => !empty($row[4]) ? trim($row[4]) : null,
-
                     'id_tipe_rumah_minat' => $tipeId,
                     'status_lead'         => $statusLead,
-                    'id_pic'              => $picId,
+                    'id_pic'              => 1,
                     'kota_domisili'       => !empty($row[12]) ? trim($row[12]) : null,
                     'alamat'              => !empty($row[13]) ? trim($row[13]) : null,
                     'status_pekerjaan'    => !empty($row[16]) ? trim($row[16]) : null,
-
-                    // PERUBAHAN: Set rencana pembayaran ke NULL (skip import)
-                    'rencana_pembayaran'  => null,
-
                     'catatan'             => !empty($row[18]) ? trim($row[18]) : null,
                 ]
             );
+            $count++;
         }
 
         fclose($file);
-        $this->command->info('Import selesai! Rencana pembayaran dikosongkan.');
+        $this->command->info("Berhasil mengimpor $count data Lead.");
+    }
+
+    private function cleanPhoneNumber($number)
+    {
+        $cleaned = preg_replace('/[^0-9]/', '', $number);
+        return $cleaned;
+    }
+
+    private function parseIndonesianDate($dateString)
+    {
+        if (empty($dateString)) return now();
+
+        $months = [
+            'Januari' => 'January', 'Februari' => 'February', 'Maret' => 'March',
+            'April' => 'April', 'Mei' => 'May', 'Juni' => 'June',
+            'Juli' => 'July', 'Agustus' => 'August', 'September' => 'September',
+            'Oktober' => 'October', 'November' => 'November', 'Desember' => 'December'
+        ];
+
+        $translatedDate = str_replace(array_keys($months), array_values($months), $dateString);
+
+        try {
+            return Carbon::parse($translatedDate)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return now();
+        }
     }
 }

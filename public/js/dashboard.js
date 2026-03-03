@@ -12,8 +12,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const ctxSource = document.getElementById('sourceChart');
     if (ctxSource && data.sourceStats) {
 
-        const sourceLabels = Object.keys(data.sourceStats);
-        const sourceValues = Object.values(data.sourceStats);
+        let filteredData = [];
+        Object.entries(data.sourceStats).forEach(([key, value]) => {
+            if (key && key.trim() !== '' && key.toLowerCase() !== 'null') {
+                filteredData.push({ label: key, count: value });
+            }
+        });
+
+        filteredData.sort((a, b) => b.count - a.count);
+
+        const sourceLabels = filteredData.map(item => item.label);
+        const sourceValues = filteredData.map(item => item.count);
 
         new Chart(ctxSource, {
             type: 'bar',
@@ -22,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 datasets: [{
                     label: 'Jumlah Lead',
                     data: sourceValues,
-                    backgroundColor: '#3b82f6', // Biru
+                    backgroundColor: '#07403A',
                     borderRadius: 4,
                     barPercentage: 0.6
                 }]
