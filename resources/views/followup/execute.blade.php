@@ -4,11 +4,12 @@
 @section('content')
 
     <div class="mb-4" style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="{{ route('followup.index') }}" class="btn"
+        <a href="javascript:history.back()" class="btn"
             style="background: #f1f5f9; color: #475569; padding: 0.6rem 1.2rem; text-decoration: none; font-weight: 600; border-radius: 8px;">
-            &larr; Kembali ke Followup
+            &larr; Kembali
         </a>
     </div>
+
     <div style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 2rem;">
 
         <div class="card" style="padding: 1.5rem; height: fit-content;">

@@ -14,7 +14,9 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $projectId = session('active_project_id');
-        $isAdminOrSuper = in_array($user->role, ['Admin', 'Super_Admin']);
+        $isSuper = $user->role === 'Super_Admin';
+        $isAdmin = $user->role === 'Admin';
+        $isAdminOrSuper = $isSuper || $isAdmin;
 
         $stats = [
             'total' => Lead::where('project_id', $projectId)->count(),
@@ -56,7 +58,7 @@ class DashboardController extends Controller
                   ->where('status_lead', 'Warm Lead');
             });
 
-        if (!$isAdminOrSuper) {
+        if (!$isSuper) {
             $currentPic = PicMarketing::where('user_id', $user->id)->first();
             if ($currentPic) {
                 $prioritiesQuery->where('id_pic', $currentPic->id_pic);

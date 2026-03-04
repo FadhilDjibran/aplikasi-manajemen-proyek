@@ -14,23 +14,36 @@ class FollowUpController extends Controller
         $projectId = session('active_project_id');
         $search = $request->search;
 
-        $query = Lead::with('latestFollowUp')
+        $query = Lead::with(['latestFollowUp.pic'])
             ->where('project_id', $projectId)
             ->whereHas('followUps');
 
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('nama_lead', 'like', "%{$search}%")
-                  ->orWhere('id_lead', 'like', "%{$search}%")
-                  ->orWhere('no_whatsapp', 'like', "%{$search}%");
+                ->orWhere('id_lead', 'like', "%{$search}%")
+                ->orWhere('no_whatsapp', 'like', "%{$search}%");
             });
         }
 
-        $followups = $query->get()->sortByDesc(function($lead) {
-            return $lead->latestFollowUp->created_at ?? $lead->created_at;
-        });
+        $query->orderByDesc(
+            FollowUp::select('created_at')
+                ->whereColumn('follow_up.id_lead', 'leads.id_lead')
+                ->orderBy('created_at', 'desc')
+                ->take(1)
+        );
 
-        return view('followup.index', compact('followups'));
+        $activeLeads = (clone $query)
+            ->whereIn('status_lead', ['Warm Lead'])
+            ->paginate(10, ['*'], 'active_page')
+            ->withQueryString();
+
+        $inactiveLeads = (clone $query)
+            ->whereIn('status_lead', ['Cold Lead', 'Tidak Prospek', 'Hot Prospek', 'Gagal Closing'])
+            ->paginate(10, ['*'], 'inactive_page')
+            ->withQueryString();
+
+        return view('followup.index', compact('activeLeads', 'inactiveLeads'));
     }
 
     public function process(Request $request, $id_lead)

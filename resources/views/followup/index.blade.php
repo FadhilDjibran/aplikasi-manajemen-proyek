@@ -2,6 +2,7 @@
 @section('title', 'Jadwal Follow Up')
 
 @section('content')
+
     <div class="card"
         style="max-width: 1400px; margin: 0 auto; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
 
@@ -27,13 +28,6 @@
         </div>
 
         @php
-
-            $activeLeads = $followups->filter(fn($l) => in_array($l->status_lead, ['Warm Lead']));
-
-            $inactiveLeads = $followups->filter(
-                fn($l) => in_array($l->status_lead, ['Cold Lead', 'Tidak Prospek', 'Hot Prospek', 'Gagal Closing']),
-            );
-
             $currentUserPicId = \App\Models\PicMarketing::where('user_id', auth()->id())->value('id_pic');
             $isAdminOrSuper = in_array(auth()->user()->role, ['Admin', 'Super_Admin']);
         @endphp
@@ -43,7 +37,7 @@
             <i class="fas fa-fire" style="color: #ef4444;"></i>
             <h4
                 style="font-size: 0.9rem; font-weight: 800; color: #1e293b; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
-                Follow Up Aktif <span style="color: #64748b; font-weight: normal;">({{ $activeLeads->count() }})</span>
+                Follow Up Aktif <span style="color: #64748b; font-weight: normal;">({{ $activeLeads->total() }})</span>
             </h4>
         </div>
 
@@ -53,7 +47,7 @@
                     <tr style="background: #ffffff; border-bottom: 2px solid #f1f5f9;">
                         <th style="width: 160px; padding: 15px;">Jadwal</th>
                         <th style="width: 250px; padding: 15px;">Lead & Kontak</th>
-                        <th style="width: 150px; padding: 15px;">PIC</th>
+                        <th style="width: 70px; padding: 15px;">PIC</th>
                         <th style="padding: 15px;">Hasil Interaksi Terakhir</th>
                         <th style="width: 170px; text-align: center; padding: 15px;">Status</th>
                         <th style="width: 180px; text-align: center; padding: 15px;">Aksi</th>
@@ -68,12 +62,9 @@
                             $isOverdue = $targetDate && $targetDate < date('Y-m-d');
                             $isToday = $targetDate && $targetDate == date('Y-m-d');
                             $picName = $lastFu && $lastFu->pic ? $lastFu->pic->nama_pic : '-';
-
-                            // Logika akses tombol
                             $currentOwnerId = $lead->id_pic;
                             $canAccessButton = $isAdminOrSuper || $currentOwnerId == $currentUserPicId;
 
-                            // Styling Status Dropdown
                             $badgeStyle = match ($lead->status_lead) {
                                 'Cold Lead' => 'background: #bae6fd; color: #0369a1; border: 1px solid #7dd3fc;',
                                 'Warm Lead' => 'background: #fde68a; color: #92400e; border: 1px solid #f59e0b;',
@@ -83,6 +74,7 @@
                                 default => 'background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;',
                             };
                         @endphp
+
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                             <td style="padding: 15px;">
                                 <div style="display: flex; flex-direction: column;">
@@ -114,15 +106,15 @@
                                     <i class="fab fa-whatsapp" style="color: #22c55e;"></i> {{ $lead->no_whatsapp }}
                                 </small>
                             </td>
-
-                            <td style="padding: 0px;">
-                                <div style="font-size: 0.85rem; color: #334155; font-weight: 600;">
+                            <td style="padding: 12px;">
+                                <div
+                                    style="font-size: 0.85rem; color: #334155; font-weight: 600; display: flex; align-items: center; white-space: nowrap;">
                                     <i class="fas fa-user-circle" style="color: #cbd5e1; margin-right: 5px;"></i>
                                     {{ $picName }}
                                 </div>
                             </td>
                             <td style="padding: 15px;">
-                                <p style="font-size: 0.875rem; color: #4b5563; line-height: 1.5; margin: 0;">
+                                <p style="font-size: 0.75rem; color: #4b5563; line-height: 1.5; margin: 0;">
                                     {{ Str::limit($lastFu->hasil_follow_up ?? 'Belum ada catatan interaksi.', 100) }}
                                 </p>
                             </td>
@@ -149,20 +141,15 @@
                                 <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
                                     @if ($canAccessButton)
                                         <a href="{{ route('followup.followup_execute', $lead->id_lead) }}" class="btn"
-                                            style="color: #166534; background: #dcfce7; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #bbf7d0; text-decoration: none; border-radius: 4px;">
-                                            Eksekusi
-                                        </a>
+                                            style="color: #b45309; background: #ffedd5; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #fed7aa; text-decoration: none; border-radius: 4px;">Eksekusi</a>
                                         @if ($lastFu)
                                             <a href="{{ route('followup.edit', $lastFu->id_follow_up) }}" class="btn"
-                                                style="color: #b45309; background: #ffedd5; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #fed7aa; text-decoration: none; border-radius: 4px;">
-                                                Jadwal
-                                            </a>
+                                                style="color: #166534; background: #dcfce7; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #bbf7d0; text-decoration: none; border-radius: 4px;">Jadwal</a>
                                         @endif
                                     @else
                                         <span
-                                            style="font-size: 0.75rem; color: #94a3b8; font-style: italic; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">
-                                            <i class="fas fa-lock"></i>
-                                        </span>
+                                            style="font-size: 0.75rem; color: #94a3b8; font-style: italic; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;"><i
+                                                class="fas fa-lock"></i></span>
                                     @endif
                                 </div>
                             </td>
@@ -177,6 +164,12 @@
             </table>
         </div>
 
+        @if ($activeLeads->hasPages())
+            <div class="custom-pagination-wrapper">
+                {{ $activeLeads->links() }}
+            </div>
+        @endif
+
         <div onclick="toggleInactive()"
             style="padding: 1.2rem 1.5rem; background: #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; margin-top: 1rem;">
             <div style="display: flex; align-items: center; gap: 10px; color: #64748b;">
@@ -184,7 +177,7 @@
                 <h4
                     style="font-size: 0.85rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
                     Follow Up Tidak Aktif<span
-                        style="font-weight: normal; background: #cbd5e1; padding: 2px 8px; border-radius: 10px; color: #475569; margin-left: 5px;">{{ $inactiveLeads->count() }}</span>
+                        style="font-weight: normal; background: #cbd5e1; padding: 2px 8px; border-radius: 10px; color: #475569; margin-left: 5px;">{{ $inactiveLeads->total() }}</span>
                 </h4>
             </div>
             <i id="chevronIcon" class="fas fa-chevron-down" style="color: #94a3b8; transition: 0.3s;"></i>
@@ -209,15 +202,16 @@
                                     default => 'background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;',
                                 };
                             @endphp
+
                             <tr style="background: #ffffff; border-bottom: 1px solid #f1f5f9;">
                                 <td style="width: 160px; padding: 12px; color: #94a3b8; font-size: 0.85rem;">
                                     <i class="fas fa-calendar-alt"></i>
                                     {{ $lastFu && $lastFu->tgl_follow_up_berikutnya ? \Carbon\Carbon::parse($lastFu->tgl_follow_up_berikutnya)->format('d/m/Y') : '-' }}
                                 </td>
-                                <td style="width: 250px; padding: 12px;">
+                                <td style="width: 150px; padding: 12px;">
                                     <strong style="color: #64748b; font-size: 0.9rem;">{{ $lead->nama_lead }}</strong>
                                 </td>
-                                <td style="width: 150px; padding: 12px;">
+                                <td style="width: 70px; padding: 12px;">
                                     <small style="color: #64748b;">{{ $picName }}</small>
                                 </td>
                                 <td style="padding: 12px;">
@@ -228,14 +222,14 @@
                                 <td style="width: 170px; text-align: center; padding: 12px;">
                                     <form action="{{ route('leads.update', $lead->id_lead) }}" method="POST">
                                         @csrf @method('PUT')
+                                        <input type="hidden" name="is_quick_update" value="1">
                                         <div style="position: relative; display: inline-block; width: 100%;">
                                             <select name="status_lead" onchange="this.form.submit()"
                                                 style="{{ $badgeStyle }} cursor: pointer; border-radius: 6px; padding: 4px 25px 4px 10px; font-size: 0.75rem; font-weight: 700; appearance: none; -webkit-appearance: none; outline: none; width: 100%;">
                                                 @foreach (['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Deal', 'Tidak Prospek', 'Gagal Closing'] as $status)
                                                     <option value="{{ $status }}"
                                                         {{ $lead->status_lead == $status ? 'selected' : '' }}>
-                                                        {{ $status }}
-                                                    </option>
+                                                        {{ $status }}</option>
                                                 @endforeach
                                             </select>
                                             <i class="fas fa-chevron-down"
@@ -260,8 +254,15 @@
                     </tbody>
                 </table>
             </div>
+
+            @if ($inactiveLeads->hasPages())
+                <div class="custom-pagination-wrapper">
+                    {{ $inactiveLeads->links() }}
+                </div>
+            @endif
         </div>
     </div>
+
     <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
         <form action="{{ route('leads.trigger_update') }}" method="POST">
             @csrf
@@ -278,7 +279,7 @@
             const section = document.getElementById('inactiveSection');
             const icon = document.getElementById('chevronIcon');
 
-            if (section.style.display === 'none') {
+            if (section.style.display === 'none' || section.style.display === '') {
                 section.style.display = 'block';
                 icon.style.transform = 'rotate(180deg)';
                 icon.style.color = '#1e293b';
@@ -288,5 +289,16 @@
                 icon.style.color = '#94a3b8';
             }
         }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('inactive_page')) {
+                const section = document.getElementById('inactiveSection');
+                const icon = document.getElementById('chevronIcon');
+                section.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+                icon.style.color = '#1e293b';
+            }
+        });
     </script>
 @endsection

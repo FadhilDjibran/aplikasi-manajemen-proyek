@@ -129,11 +129,13 @@ class LeadController extends Controller
 
         $data = $request->all();
 
-        $sumberLead = $request->sumber_lead;
-        if ($sumberLead === 'Lainnya') {
-            $sumberLead = $request->sumber_lead_custom;
+        if ($request->has('sumber_lead')) {
+            $sumberLead = $request->sumber_lead;
+            if ($sumberLead === 'Lainnya') {
+                $sumberLead = $request->sumber_lead_custom;
+            }
+            $data['sumber_lead'] = $sumberLead;
         }
-        $data['sumber_lead'] = $sumberLead;
 
         if ($request->has('perkiraan_budget')) {
             $data['perkiraan_budget'] = $request->perkiraan_budget
@@ -210,8 +212,11 @@ class LeadController extends Controller
             $pesan = "Lead ditandai sebagai Gagal Closing.";
         }
 
-        $queryParams = $request->except(['_token', '_method', 'status_lead', 'sumber_lead_custom']);
+        if ($request->has('is_quick_update')) {
+            return redirect()->back()->with('success', $pesan);
+        }
 
+        $queryParams = $request->except(['_token', '_method', 'status_lead', 'sumber_lead_custom']);
         return redirect()->route('leads.index', $queryParams)->with('success', $pesan);
     }
 

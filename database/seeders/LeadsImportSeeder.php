@@ -28,7 +28,9 @@ class LeadsImportSeeder extends Seeder
         $count = 0;
         while (($row = fgetcsv($file, 2000, ';')) !== false) {
 
-            if (empty($row[0]) || trim($row[0]) == '') continue;
+            if (empty($row[0]) || trim($row[0]) == '' || empty($row[2]) || trim($row[2]) == '') {
+                continue;
+            }
 
             $rawDate = trim($row[1]);
             $tglMasuk = $this->parseIndonesianDate($rawDate);

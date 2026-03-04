@@ -20,8 +20,6 @@
         </nav>
     @endif
 
-    {{-- CARD 1: EDIT FORM --}}
-    {{-- PERBAIKAN DI SINI: max-width: 50% dan margin: 0 auto --}}
     <div class="card"
         style="width: 100%; max-width: 70%; min-width: 320px; margin: 0 auto; border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; margin-bottom: 2rem;">
 
@@ -91,9 +89,7 @@
     </div>
 
 
-    {{-- CARD 2: DANGER ZONE (KHUSUS SUPER ADMIN) --}}
     @if (Auth::user()->role === 'Super_Admin')
-        {{-- PERBAIKAN DI SINI JUGA: max-width: 50% dan margin: 2rem auto --}}
         <div class="card"
             style="width: 100%; max-width: 90%; min-width: 320px; margin: 2rem auto; border: 1px solid #fecaca; border-radius: 12px; overflow: hidden;">
 

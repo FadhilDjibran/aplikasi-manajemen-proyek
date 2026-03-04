@@ -38,7 +38,7 @@
 
             <nav class="sidebar-nav">
                 <a href="/dashboard" class="sidebar-link {{ request()->is('dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-chart-line" style="width: 24px;"></i> Dashboard Utama
+                    <i class="fas fa-chart-line" style="width: 24px;"></i> Dashboard
                 </a>
 
                 <a href="/leads"
@@ -46,13 +46,13 @@
                     <i class="fas fa-database" style="width: 24px;"></i> Database Leads
                 </a>
 
+                <a href="/followup" class="sidebar-link {{ request()->is('followup*') ? 'active' : '' }}">
+                    <i class="fas fa-calendar-alt" style="width: 24px;"></i> Jadwal Follow Up
+                </a>
+
                 <a href="{{ route('hot_prospek.index') }}"
                     class="sidebar-link {{ request()->routeIs('hot_prospek.*') ? 'active' : '' }}">
                     <i class="fas fa-fire" style="width: 24px;"></i> Hot Prospek
-                </a>
-
-                <a href="/followup" class="sidebar-link {{ request()->is('followup*') ? 'active' : '' }}">
-                    <i class="fas fa-calendar-alt" style="width: 24px;"></i> Jadwal Follow Up
                 </a>
 
                 @if (auth()->check() && in_array(auth()->user()->role, ['Admin', 'Super_Admin']))
@@ -68,7 +68,7 @@
                     </a>
                 @endif
 
-                @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Super_Admin')
+                @if (auth()->user()->role === 'Super_Admin')
                     <a href="{{ route('projects.edit', session('active_project_id')) }}"
                         class="sidebar-link {{ request()->routeIs('projects.edit') ? 'active' : '' }}">
                         <i class="fas fa-pen-to-square" style="width: 24px;"></i> <span>Edit Proyek</span>

@@ -1167,9 +1167,9 @@ a:hover {
 
 .custom-pagination-wrapper span[aria-current="page"] span,
 .custom-pagination-wrapper .active .page-link {
-    background: #2563eb !important;
+    background: var(--bg-main);
     color: #ffffff !important;
-    border-color: #2563eb !important;
+    border-color: var(--bg-main);
     z-index: 2;
 }
 

@@ -89,7 +89,7 @@
                         style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #475569; font-size: 0.9rem;">Nama
                         Tipe</label>
                     <input type="text" name="nama_tipe" id="nama_tipe" class="form-control" required
-                        placeholder="Contoh: Tipe 36, Hook, Ruko 2LT" maxlength="50"
+                        placeholder="Masukkan nama tipe rumah..." maxlength="50"
                         style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px;">
                 </div>
 

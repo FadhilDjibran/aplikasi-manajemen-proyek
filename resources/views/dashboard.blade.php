@@ -4,20 +4,21 @@
 @section('content')
     @php
         $user = auth()->user();
-        $isAdminOrSuper = in_array($user->role, ['Admin', 'Super_Admin']);
+        $isSuper = $user->role === 'Super_Admin';
+        $isAdmin = $user->role === 'Admin';
+        $isAdminOrSuper = $isSuper || $isAdmin;
 
         $overdueItems = $priorities->where('tgl_follow_up_berikutnya', '<', now()->format('Y-m-d'));
         $overdueCount = $overdueItems->count();
 
         $overduePicNames = collect([]);
-        if ($isAdminOrSuper && $overdueCount > 0) {
+        if ($isSuper && $overdueCount > 0) {
             $overduePicNames = $overdueItems->map(fn($item) => $item->pic->nama_pic ?? 'Tanpa PIC')->unique()->values();
         }
     @endphp
 
     @if ($overdueCount > 0)
         <div class="alert-overdue" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
-
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <div class="alert-icon-danger">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -32,9 +33,8 @@
                 </div>
             </div>
 
-            @if ($isAdminOrSuper && $overduePicNames->isNotEmpty())
+            @if ($isSuper && $overduePicNames->isNotEmpty())
                 <div class="alert-pic-list" style="text-align: left; margin: 0; min-width: max-content;">
-
                     <small
                         style="color: #7f1d1d; font-weight: 700; display: block; font-size: 0.7rem; text-transform: uppercase;">
                         PIC Bersangkutan:
@@ -44,10 +44,8 @@
                     </span>
                 </div>
             @endif
-
         </div>
     @endif
-
 
     @if (isset($pendingHotProspek) && $pendingHotProspek > 0)
         <div class="alert-pending">
@@ -111,7 +109,9 @@
                 </div>
             </div>
         </div>
+    @endif
 
+    @if ($isSuper)
         <div class="dashboard-card">
             <div class="dashboard-card-header">
                 Performa Tim Marketing
@@ -160,7 +160,7 @@
         <div class="dashboard-card-header">
             <div>
                 <i class="fas fa-clock" style="margin-right: 8px; color: #f59e0b;"></i>
-                Follow Up Terdekat {{ $isAdminOrSuper ? '(Global)' : '(Jadwal Anda)' }}
+                Follow Up Terdekat {{ $isSuper ? '(Global)' : '' }}
             </div>
             <span style="font-weight: 400; color: #64748b; font-size: 0.875rem;">Hari Ini:
                 {{ now()->translatedFormat('d F Y') }}</span>
@@ -172,7 +172,7 @@
                     <tr>
                         <th style="width: 140px;">Jadwal</th>
                         <th>Nama Lead & Kontak</th>
-                        @if ($isAdminOrSuper)
+                        @if ($isSuper)
                             <th>PIC</th>
                         @endif
                         <th>Status Lead</th>
@@ -225,7 +225,7 @@
                                 </small>
                             </td>
 
-                            @if ($isAdminOrSuper)
+                            @if ($isSuper)
                                 <td style="padding: 1rem;">
                                     <span class="badge"
                                         style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">{{ $fu->pic->nama_pic ?? '-' }}</span>
@@ -235,6 +235,7 @@
                             <td style="padding: 1rem;">
                                 <form action="{{ route('leads.update', $fu->lead->id_lead) }}" method="POST">
                                     @csrf @method('PUT')
+                                    <input type="hidden" name="is_quick_update" value="1">
                                     <div style="position: relative; display: inline-block;">
                                         @php
                                             $slug = Str::slug($fu->lead->status_lead);
@@ -261,13 +262,22 @@
                             </td>
 
                             <td style="text-align: center; padding: 1rem;">
-                                <a href="{{ route('followup.followup_execute', $fu->id_lead) }}" class="btn"
-                                    style="background: #1e293b; color: white; padding: 0.4rem 0.8rem; font-size: 0.7rem; width: auto; font-weight: 600;">Eksekusi</a>
+                                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                    <a href="{{ route('followup.followup_execute', $fu->id_lead) }}" class="btn"
+                                        style="color: #b45309; background: #ffedd5; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #fed7aa; text-decoration: none; border-radius: 4px;">
+                                        Eksekusi
+                                    </a>
+
+                                    <a href="{{ route('followup.edit', $fu->id_follow_up) }}" class="btn"
+                                        style="color: #166534; background: #dcfce7; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #bbf7d0; text-decoration: none; border-radius: 4px;">
+                                        Jadwal
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $isAdminOrSuper ? 6 : 5 }}" class="text-center"
+                            <td colspan="{{ $isSuper ? 6 : 5 }}" class="text-center"
                                 style="padding: 3rem; color: #94a3b8;">
                                 <i class="fas fa-check-circle"
                                     style="font-size: 2rem; color: #cbd5e1; margin-bottom: 10px;"></i><br>
