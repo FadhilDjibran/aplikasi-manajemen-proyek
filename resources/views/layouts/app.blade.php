@@ -55,16 +55,16 @@
                     <i class="fas fa-fire" style="width: 24px;"></i> Hot Prospek
                 </a>
 
-                @if (auth()->check() && in_array(auth()->user()->role, ['Admin', 'Super_Admin']))
-                    <a href="{{ route('index') }}" class="sidebar-link {{ request()->is('users*') ? 'active' : '' }}">
-                        <i class="fas fa-users-cog" style="width: 24px;"></i> Manajemen User
-                    </a>
-                @endif
-
                 @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Super_Admin')
                     <a href="{{ route('tipe_rumah.index') }}"
                         class="sidebar-link {{ request()->routeIs('tipe_rumah.*') ? 'active' : '' }}">
                         <i class="fas fa-home" style="width: 24px;"></i> <span>Edit Tipe Rumah</span>
+                    </a>
+                @endif
+
+                @if (auth()->check())
+                    <a href="{{ route('index') }}" class="sidebar-link {{ request()->is('users*') ? 'active' : '' }}">
+                        <i class="fas fa-users-cog" style="width: 24px;"></i> Manajemen User
                     </a>
                 @endif
 
@@ -136,6 +136,7 @@
             }
         }
     </script>
+    @stack('scripts')
 </body>
 
 </html>

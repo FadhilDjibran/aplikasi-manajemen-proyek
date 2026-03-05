@@ -19,7 +19,12 @@
                         <span>{{ $message }}</span>
                     </div>
                 @enderror
-
+                @if (session('success'))
+                    <div
+                        style="background: #dcfce7; color: #166534; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; border: 1px solid #bbf7d0; font-size: 0.9rem;">
+                        <i class="fas fa-check-circle"></i> {{ session('success') }}
+                    </div>
+                @endif
                 <form action="{{ url('/login') }}" method="POST">
                     @csrf
                     <div class="form-group">
@@ -37,8 +42,13 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary">
-                        Masuk Ke Sistem <i class="fas fa-sign-in-alt"></i>
+                        Masuk <i class="fas fa-sign-in-alt"></i>
                     </button>
+                    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                        <span style="color: #64748b;">Belum punya akun?</span>
+                        <a href="{{ url('/register') }}"
+                            style="color: #2563eb; text-decoration: none; font-weight: 600;">Daftar</a>
+                    </div>
                 </form>
             </div>
         </div>

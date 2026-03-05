@@ -1,8 +1,3 @@
-
-const currentUserRole = window.userData.currentRole;
-const currentUserId = window.userData.currentId;
-const updateUrlTemplate = window.userData.updateUrl;
-
 function toggleKpiInput(mode) {
     const roleSelect = document.getElementById(mode + 'Role');
     if (!roleSelect) return;
@@ -26,48 +21,79 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function openEditModal(user, kpiValue) {
+    const currentUserRole = window.userData ? window.userData.currentRole : null;
+    const currentUserId = window.userData ? window.userData.currentId : null;
+    const updateUrlTemplate = window.userData ? window.userData.updateUrl : '';
+
+    if (!currentUserRole) {
+        alert("Sistem sedang memuat data, silakan refresh halaman.");
+        return;
+    }
+
+    if (currentUserRole === 'Admin') {
+        if ((user.role === 'Super_Admin' || user.role === 'Admin') && user.id !== currentUserId) {
+            alert("Akses ditolak: Anda tidak dapat mengedit Super Admin atau Admin lain.");
+            return;
+        }
+    }
+
     document.getElementById('editName').value = user.name;
     document.getElementById('editEmail').value = user.email;
 
     const roleSelect = document.getElementById('editRole');
-    roleSelect.innerHTML = '';
+    if (roleSelect) {
+        roleSelect.innerHTML = '';
 
-    if (currentUserRole === 'Super_Admin') {
-        const roles = ['Super_Admin', 'Admin', 'Marketing'];
-        roles.forEach(r => {
-            const opt = document.createElement('option');
-            opt.value = r;
-            opt.text = r.replace('_', ' ');
-            roleSelect.appendChild(opt);
-        });
-    } else if (currentUserRole === 'Admin') {
-        if (user.id === currentUserId) {
-            const opt = document.createElement('option');
-            opt.value = 'Admin';
-            opt.text = 'Admin';
-            roleSelect.appendChild(opt);
+        const placeholder = document.createElement('option');
+        placeholder.value = "";
+        placeholder.text = "--Pilih Role--";
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        roleSelect.appendChild(placeholder);
+
+        if (currentUserRole === 'Super_Admin') {
+            const roles = ['Super_Admin', 'Admin', 'Marketing'];
+            roles.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.text = r.replace('_', ' ');
+                roleSelect.appendChild(opt);
+            });
+        } else if (currentUserRole === 'Admin') {
+            if (user.id === currentUserId) {
+                const opt = document.createElement('option');
+                opt.value = 'Admin';
+                opt.text = 'Admin';
+                roleSelect.appendChild(opt);
+            } else {
+                const opt = document.createElement('option');
+                opt.value = 'Marketing';
+                opt.text = 'Marketing';
+                roleSelect.appendChild(opt);
+            }
+        }
+
+        if (user.role) {
+            roleSelect.value = user.role;
         } else {
-            const opt = document.createElement('option');
-            opt.value = 'Marketing';
-            opt.text = 'Marketing';
-            roleSelect.appendChild(opt);
+            roleSelect.value = "";
         }
     }
-
-    roleSelect.value = user.role;
 
     const projectSelect = document.getElementById('editProject');
     if (projectSelect) {
         projectSelect.value = user.project_id || "";
     }
 
-    document.getElementById('editKpi').value = kpiValue || "";
+    const kpiInput = document.getElementById('editKpi');
+    if (kpiInput) {
+        kpiInput.value = kpiValue || "";
+    }
 
     toggleKpiInput('edit');
 
     let url = updateUrlTemplate.replace('999', user.id);
     document.getElementById('editForm').action = url;
-
     document.getElementById('editModal').style.display = 'flex';
 }
 

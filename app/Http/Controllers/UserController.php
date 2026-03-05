@@ -19,20 +19,26 @@ class UserController extends Controller
 
         $auth = Auth::user();
         $projects = Project::all();
-
         $query = User::with(['project', 'picMarketing']);
 
         if ($auth->role === 'Super_Admin') {
             $users = $query->get();
-        } else {
+        } elseif ($auth->role === 'Admin') {
             $users = $query->where(function ($q) use ($auth) {
-                $q->where('role', 'Marketing')
-                  ->where('project_id', $auth->project_id);
-            })->orWhere(function ($q) use ($auth) {
-                $q->where('role', 'Admin')
-                  ->where('project_id', $auth->project_id);
-            })->orWhere('id', $auth->id)
-              ->get();
+                $q->where('project_id', $auth->project_id)
+                ->orWhere('id', $auth->id)
+                ->orWhere(function ($subQ) {
+                    $subQ->whereNull('project_id')
+                        ->where(function ($roleQ) {
+                            $roleQ->whereNull('role')
+                                    ->orWhereNotIn('role', ['Super_Admin', 'Admin']);
+                        });
+                });
+            })->get();
+        } elseif ($auth->role === 'Marketing') {
+            $users = $query->where('project_id', $auth->project_id)->get();
+        } else {
+            $users = $query->where('id', $auth->id)->get();
         }
 
         return view('users', compact('users', 'projects'));
@@ -71,39 +77,57 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $auth = Auth::user();
 
-        if ($auth->role === 'Admin') {
-            if ($user->id !== $auth->id && $user->role !== 'Marketing') {
+
+        if ($auth->role === 'Super_Admin') {
+        }
+        elseif ($auth->role === 'Admin') {
+            $isTargetValid = ($user->id === $auth->id) || ($user->role === 'Marketing') || empty($user->role);
+
+            if (!$isTargetValid) {
                 return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk mengedit user ini.');
             }
 
-            if ($request->role === 'Admin' && $user->id !== $auth->id) {
-                return redirect()->back()->with('error', 'Anda tidak dapat mempromosikan user lain menjadi Admin.');
+            $isPromoting = in_array($request->role, ['Admin', 'Super_Admin']);
+            if ($isPromoting && $user->id !== $auth->id) {
+                return redirect()->back()->with('error', 'Anda tidak berhak mempromosikan user menjadi Admin atau Super Admin.');
+            }
+        }
+        else {
+            if ($user->id !== $auth->id) {
+                return redirect()->back()->with('error', 'Akses ditolak: Anda hanya dapat mengubah profil Anda sendiri.');
+            }
+
+            if ($request->has('role') && $request->role !== $user->role) {
+                return redirect()->back()->with('error', 'Anda tidak diperbolehkan mengubah hak akses sendiri.');
             }
         }
 
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$id,
-            'role' => 'required',
+            'role' => 'nullable',
             'password' => 'nullable|string|min:4',
             'project_id' => 'nullable|exists:projects,id',
             'kpi_target' => 'nullable|numeric|min:0'
         ]);
 
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-            'project_id' => $request->project_id,
-        ];
+        $user->name = $request->name;
+        $user->email = $request->email;
 
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+        if (in_array($auth->role, ['Admin', 'Super_Admin'])) {
+            $user->role = $request->role;
+            $user->project_id = $request->project_id;
         }
 
-        $user->update($data);
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
 
-        $this->syncToPicMarketing($user, $request->kpi_target);
+        $user->save();
+
+        if (in_array($user->role, ['Marketing', 'Admin'])) {
+            $this->syncToPicMarketing($user, $request->kpi_target);
+        }
 
         return redirect()->route('index')->with('success', 'Data user berhasil diperbarui!');
     }

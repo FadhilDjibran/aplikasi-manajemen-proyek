@@ -13,15 +13,17 @@ use App\Http\Controllers\HotProspekController;
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
+    Route::get('/pending', [AuthController::class, 'showPending'])->name('pending');
+    Route::get('/users', [UserController::class, 'index'])->name('index');
+    Route::put('/users/{id}', [UserController::class, 'update'])->name('update');
     Route::middleware('role:Super_Admin,Admin')->group(function () {
-        Route::get('/users', [UserController::class, 'index'])->name('index');
         Route::post('/users', [UserController::class, 'store'])->name('store');
-        Route::put('/users/{id}', [UserController::class, 'update'])->name('update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('destroy');
         Route::resource('tipe_rumah', TipeRumahController::class);
         Route::get('/projects/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
