@@ -6,7 +6,7 @@ class Lead extends Model
 {
     protected $table = 'leads';
     protected $primaryKey = 'id_lead';
-    public $incrementing = false; // Karena menggunakan string ID
+    public $incrementing = false;
     protected $keyType = 'string';
 
     protected $guarded = [];
@@ -45,5 +45,34 @@ class Lead extends Model
         public function pic()
     {
         return $this->belongsTo(PicMarketing::class, 'id_pic', 'id_pic');
+    }
+    protected static function booted()
+    {
+        static::updated(function ($lead) {
+            if ($lead->wasChanged('status_lead')) {
+
+                $oldStatus = $lead->getOriginal('status_lead');
+                $newStatus = $lead->status_lead;
+
+                if ($lead->id_pic) {
+
+                    $isUpConvert =
+                        ($oldStatus === 'Cold Lead' && $newStatus === 'Warm Lead') ||
+                        ($oldStatus === 'Warm Lead' && $newStatus === 'Hot Prospek');
+
+                    if ($isUpConvert) {
+                        PicMarketing::where('id_pic', $lead->id_pic)->increment('up_convert');
+                    }
+
+                    $isDownConvert =
+                        ($oldStatus === 'Hot Prospek' && in_array($newStatus, ['Warm Lead', 'Cold Lead', 'Gagal Closing'])) ||
+                        ($oldStatus === 'Warm Lead' && in_array($newStatus, ['Cold Lead', 'Gagal Closing']));
+
+                    if ($isDownConvert) {
+                        PicMarketing::where('id_pic', $lead->id_pic)->increment('down_convert');
+                    }
+                }
+            }
+        });
     }
 }

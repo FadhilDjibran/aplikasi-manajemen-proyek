@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:Super_Admin,Admin')->group(function () {
         Route::post('/users', [UserController::class, 'store'])->name('store');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('destroy');
+        Route::post('/users/trigger-cleanup', [UserController::class, 'triggerCleanupUnassigned'])->name('trigger_cleanup');
         Route::resource('tipe_rumah', TipeRumahController::class);
         Route::get('/projects/{id}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
         Route::put('/projects/{id}', [ProjectController::class, 'update'])->name('projects.update')->where('id', '[0-9]+');

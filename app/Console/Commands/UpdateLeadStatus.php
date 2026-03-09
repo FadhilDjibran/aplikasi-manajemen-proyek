@@ -8,35 +8,48 @@ use Carbon\Carbon;
 
 class UpdateLeadStatus extends Command
 {
-    protected $signature = 'leads:update-status';
-
-    protected $description = 'Otomatis menurunkan status lead berdasarkan ketidakaktifan follow up';
+    protected $signature = 'leads:update-status {project_id?}';
+    protected $description = 'Menurunkan status lead yang tidak di-follow up';
 
     public function handle()
     {
         $this->info('Memulai pengecekan status leads...');
+        $projectId = $this->argument('project_id');
         $batasWarm = Carbon::now()->subDays(5)->format('Y-m-d');
 
-        $warmLeads = Lead::where('status_lead', 'Warm Lead')
-            ->where(function ($query) use ($batasWarm) {
-                $query->whereHas('latestFollowUp', function ($q) use ($batasWarm) {
-                    $q->whereDate('tgl_follow_up', '<', $batasWarm);
-                })
-                ->orWhere(function ($q) use ($batasWarm) {
-                    $q->doesntHave('followUps')
-                      ->whereDate('tgl_masuk', '<', $batasWarm);
-                });
-            })
-            ->update(['status_lead' => 'Cold Lead']);
+        $warmQuery = Lead::where('status_lead', 'Warm Lead')
+            ->whereHas('latestFollowUp', function ($q) use ($batasWarm) {
+                $q->whereDate('tgl_follow_up', '<', $batasWarm);
+            });
 
-        $this->info("Berhasil mengubah $warmLeads Warm Lead menjadi Cold Lead.");
+        if ($projectId) {
+            $warmQuery->where('project_id', $projectId);
+        }
+
+        $warmLeads = $warmQuery->get();
+        $warmCount = 0;
+
+        foreach ($warmLeads as $lead) {
+            $lead->update(['status_lead' => 'Cold Lead']);
+            $warmCount++;
+        }
+        $this->info("Berhasil mengubah $warmCount Warm Lead menjadi Cold Lead.");
 
         $batasCold = Carbon::now()->subDays(30)->format('Y-m-d');
+        $coldQuery = Lead::where('status_lead', 'Cold Lead')
+            ->whereDate('updated_at', '<', $batasCold);
 
-    $coldLeads = Lead::where('status_lead', 'Cold Lead')
-        ->whereDate('updated_at', '<', $batasCold)
-        ->update(['status_lead' => 'Tidak Prospek']);
-
-    $this->info("Berhasil mengubah $coldLeads Cold Lead menjadi Tidak Prospek.");
+        if ($projectId) {
+            $coldQuery->where('project_id', $projectId);
         }
+
+        $coldLeads = $coldQuery->get();
+        $coldCount = 0;
+
+        foreach ($coldLeads as $lead) {
+            $lead->update(['status_lead' => 'Tidak Prospek']);
+            $coldCount++;
+        }
+        $this->info("Berhasil mengubah $coldCount Cold Lead menjadi Tidak Prospek.");
+    }
 }

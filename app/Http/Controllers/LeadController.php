@@ -163,51 +163,34 @@ class LeadController extends Controller
 
         $lead->update($data);
 
-        if ($lead->id_pic) {
-            if (in_array($oldStatus, ['Warm Lead', 'Hot Prospek']) &&
-                in_array($newStatus, ['Cold Lead', 'Gagal Closing'])) {
-
-                \App\Models\PicMarketing::where('id_pic', $lead->id_pic)->increment('down_convert');
-            } elseif ($oldStatus == 'Warm Lead' && $newStatus == 'Hot Prospek') {
-
-                \App\Models\PicMarketing::where('id_pic', $lead->id_pic)->increment('up_convert');
-            }
-        }
-
         $pesan = "Data lead berhasil diperbarui.";
 
         if ($newStatus == 'Warm Lead' && $oldStatus != 'Warm Lead') {
-            $existingFollowUp = \App\Models\FollowUp::where('id_lead', $id)
-                ->where('status_follow_up', 'Proses Follow Up')
-                ->exists();
 
-            if (!$existingFollowUp) {
-                $userId = Auth::id();
-                $activePic = \App\Models\PicMarketing::where('user_id', $userId)->first();
+            $userId = Auth::id();
+            $activePic = \App\Models\PicMarketing::where('user_id', $userId)->first();
 
-                if ($activePic) {
-                    $currentPicId = $activePic->id_pic;
+            if ($activePic) {
+                $currentPicId = $activePic->id_pic;
 
-                    $lead->update(['id_pic' => $currentPicId]);
+                $lead->update(['id_pic' => $currentPicId]);
 
-                    \App\Models\FollowUp::create([
-                        'id_lead'                  => $lead->id_lead,
-                        'project_id'               => $lead->project_id,
-                        'id_pic'                   => $currentPicId,
-                        'tgl_follow_up'            => now(),
-                        'hasil_follow_up'          => 'Status naik menjadi Warm Lead.',
-                        'tgl_follow_up_berikutnya' => now()->addDays(14),
-                        'jam_follow_up_berikutnya' => '09:00:00',
-                        'status_follow_up'         => 'Proses Follow Up'
-                    ]);
+                FollowUp::create([
+                    'id_lead'                  => $lead->id_lead,
+                    'project_id'               => $lead->project_id,
+                    'id_pic'                   => $currentPicId,
+                    'tgl_follow_up'            => now(),
+                    'hasil_follow_up'          => 'Status naik menjadi Warm Lead.',
+                    'tgl_follow_up_berikutnya' => now()->addDays(14),
+                    'jam_follow_up_berikutnya' => '09:00:00',
+                    'status_follow_up'         => 'Proses Follow Up'
+                ]);
 
-                    $pesan = "Status naik ke Warm Lead & Jadwal dibuat.";
-                } else {
-                    $pesan = "Status diperbarui (User bukan PIC Marketing).";
-                }
+                $pesan = "Status naik ke Warm Lead & Jadwal Follow Up baru berhasil dibuat.";
             } else {
-                $pesan = "Status diperbarui.";
+                $pesan = "Status diperbarui menjadi Warm Lead (User bukan PIC Marketing).";
             }
+
         } elseif ($newStatus == 'Gagal Closing') {
             $pesan = "Lead ditandai sebagai Gagal Closing.";
         }
@@ -241,14 +224,18 @@ class LeadController extends Controller
         return view('leads.show', compact('lead'));
     }
 
-    public function triggerUpdateStatus()
+    public function triggerUpdateStatus(Request $request)
     {
-        try {
-            Artisan::call('leads:update-status');
-            $output = Artisan::output();
-            return redirect()->back()->with('success', 'Update status otomatis berhasil dijalankan secara manual.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menjalankan update: ' . $e->getMessage());
+        $projectId = session('active_project_id');
+
+        if (!$projectId) {
+            return redirect()->back()->with('error', 'Gagal: Tidak ada proyek yang aktif saat ini.');
         }
+
+        Artisan::call('leads:update-status', [
+            'project_id' => $projectId
+        ]);
+
+        return redirect()->back()->with('success', 'Status lead pada proyek ini berhasil diperbarui!');
     }
 }

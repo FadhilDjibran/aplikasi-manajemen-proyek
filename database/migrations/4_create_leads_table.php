@@ -28,7 +28,7 @@ return new class extends Migration
         $table->date('tgl_gagal')->nullable();
 
         $table->unsignedInteger('id_pic')->nullable();
-        $table->foreign('id_pic')->references('id_pic')->on('pic_marketing');
+        $table->foreign('id_pic')->references('id_pic')->on('pic_marketing')->onDelete('set null');;
 
         $table->enum('cara_kontak', ['Whatsapp'])->nullable();
         $table->string('kota_domisili', 100)->nullable();

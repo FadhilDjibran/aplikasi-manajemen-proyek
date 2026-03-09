@@ -8,6 +8,7 @@ use App\Models\PicMarketing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Artisan;
 
 class UserController extends Controller
 {
@@ -164,5 +165,11 @@ class UserController extends Controller
         } else {
             PicMarketing::where('user_id', $user->id)->delete();
         }
+    }
+
+    public function triggerCleanupUnassigned()
+    {
+        Artisan::call('users:cleanup-unassigned');
+        return redirect()->back()->with('success', 'Pembersihan selesai! User berhasil dihapus.');
     }
 }

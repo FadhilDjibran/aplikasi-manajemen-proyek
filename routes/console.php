@@ -8,3 +8,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 Schedule::command('leads:update-status')->dailyAt('01:00');
+Schedule::command('users:cleanup-unassigned')->dailyAt('02:00');

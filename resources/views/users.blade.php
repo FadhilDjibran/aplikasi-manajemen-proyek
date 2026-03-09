@@ -119,7 +119,6 @@
                 </form>
             </div>
         @endif
-
         <div class="table-container" style="border: none; box-shadow: 0 10px 15px rgba(0,0,0,0.2);">
             <table class="custom-table">
                 <thead>
@@ -134,15 +133,23 @@
                 </thead>
                 <tbody>
                     @foreach ($users as $user)
-                        <tr>
+                        <tr class="{{ empty($user->role) ? 'user-tanpa-role' : '' }}"
+                            style="{{ empty($user->role) ? 'display: none;' : '' }}">
                             <td style="font-weight: 700; font-size: 0.9rem">{{ $user->name }}</td>
                             <td style="font-size: 0.8rem">{{ $user->email }}</td>
                             <td style="text-align: center;">
                                 @if (!empty($user->project))
-                                    <span class="badge"
-                                        style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
-                                        {{ $user->project->nama_proyek }}
-                                    </span>
+                                    @if ($user->project->nama_proyek === 'Safira Regency')
+                                        <span class="badge"
+                                            style="background: var(--bg-main); color: var(--accent); border: 1px solid var(--accent);">
+                                            {{ $user->project->nama_proyek }}
+                                        </span>
+                                    @else
+                                        <span class="badge"
+                                            style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                            {{ $user->project->nama_proyek }}
+                                        </span>
+                                    @endif
                                 @else
                                     <span style="color: #94a3b8;">-</span>
                                 @endif
@@ -213,6 +220,24 @@
                 </tbody>
             </table>
         </div>
+        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin']))
+            <div style="margin-top: 1rem; margin-bottom: 2rem; display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" onclick="toggleUserTanpaRole()" class="btn btn-primary"
+                    style="width: 260px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; white-space: nowrap;">
+                    <i class="fas fa-eye" id="icon-toggle-role"></i>
+                    <span id="text-toggle-role">Tampilkan User Tanpa Role</span>
+                </button>
+                <form action="{{ route('trigger_cleanup') }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn btn-primary"
+                        style="width: 180px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; white-space: nowrap;"
+                        onclick="return confirm('PERINGATAN: Proses ini akan menghapus permanen semua akun yang tidak memiliki Role selama lebih dari 7 hari. Lanjutkan?')">
+                        <i class="fas fa-user-slash"></i> Bersihkan User
+                    </button>
+                </form>
+            </div>
+        @endif
+
     </div>
     <div id="editModal" class="modal compact-modal">
         <div class="modal-content compact-content">
@@ -298,6 +323,26 @@
             updateUrl: "{{ url('/users/999') }}"
         };
     </script>
+    <script>
+        function toggleUserTanpaRole() {
+            const rows = document.querySelectorAll('.user-tanpa-role');
+            const textSpan = document.getElementById('text-toggle-role');
+            const icon = document.getElementById('icon-toggle-role');
 
+            if (rows.length === 0) {
+                alert('Saat ini tidak ada user tanpa role.');
+                return;
+            }
+
+            let isHidden = rows[0].style.display === 'none';
+
+            rows.forEach(row => {
+                row.style.display = isHidden ? 'table-row' : 'none';
+            });
+
+            textSpan.innerText = isHidden ? 'Sembunyikan User Tanpa Role' : 'Tampilkan User Tanpa Role';
+            icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+        }
+    </script>
     <script src="{{ asset('js/users-page.js?v=' . time()) }}"></script>
 @endpush
