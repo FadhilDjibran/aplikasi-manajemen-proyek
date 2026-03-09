@@ -4,43 +4,153 @@
 @section('content')
     <div class="card" style="width: 100%; max-width: 100%; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
         <div
-            style="padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #f1f5f9;">
-            <form action="{{ route('leads.index') }}" method="GET"
-                style="display: flex; flex-wrap: wrap; gap: 10px; width: 100%; max-width: 700px; align-items: center;">
+            style="padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; gap: 1rem;">
 
-                <div style="position: relative; flex: 1; min-width: 200px;">
+            <form action="{{ route('leads.index') }}" method="GET" id="filterForm"
+                style="display: flex; align-items: center; gap: 8px; flex: 1;">
+
+                <div style="position: relative; flex: 1; max-width: 300px;">
                     <i class="fas fa-search"
                         style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
-                    <input type="text" name="search" class="form-control" placeholder="Cari nama, WA, atau catatan..."
-                        value="{{ request('search') }}"
-                        style="padding-left: 38px; border-radius: 8px; border: 1px solid #e2e8f0; height: 42px; width: 100%;">
+                    <input type="text" name="search" class="form-control"
+                        placeholder="Cari nama, nomor, atau catatan..." value="{{ request('search') }}"
+                        style="padding-left: 38px; border-radius: 8px; border: 1px solid #e2e8f0; height: 40px; width: 100%;">
                 </div>
 
-                <div style="flex: 0 0 auto; min-width: 160px;">
-                    <select name="status_filter" class="form-control" onchange="this.form.submit()"
-                        style="cursor: pointer; border-radius: 8px; border: 1px solid #e2e8f0; height: 42px; width: 100%; padding-left: 10px; padding-right: 30px; background-color: #fff; font-size: 0.85rem;">
-                        <option value="">Semua Status</option>
-                        @foreach (['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Tidak Prospek', 'Gagal Closing'] as $st)
-                            <option value="{{ $st }}" {{ request('status_filter') == $st ? 'selected' : '' }}>
-                                {{ $st }}
-                            </option>
-                        @endforeach
-                    </select>
+                <div style="display: flex; align-items: center; gap: 8px; position: relative;">
+
+                    <button type="button" id="btnFilter" class="btn"
+                        style="background: #fff; border: 1px solid #e2e8f0; height: 40px; padding: 0 15px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-weight: 600; color: #475569; white-space: nowrap;">
+                        <i class="fas fa-filter"
+                            style="color: {{ request()->hasAny(['status_filter', 'sumber_filter', 'kota_filter', 'date_range']) ? '#2563eb' : '#94a3b8' }}"></i>
+                        Filter
+                        @php
+                            $activeFilters = count(
+                                array_filter(
+                                    request()->only([
+                                        'status_filter',
+                                        'sumber_filter',
+                                        'kota_filter',
+                                        'date_range',
+                                        'tipe_filter',
+                                    ]),
+                                ),
+                            );
+                        @endphp
+                        @if ($activeFilters > 0)
+                            <span
+                                style="background: #2563eb; color: #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;">{{ $activeFilters }}</span>
+                        @endif
+                    </button>
+
+                    @if (request()->hasAny(['search', 'status_filter', 'sumber_filter', 'kota_filter', 'date_range', 'tipe_filter']))
+                        <a href="{{ route('leads.index') }}" class="btn-reset-filter" title="Bersihkan Semua Filter">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    @endif
+
+                    <div id="filterPanel"
+                        style="display: none; position: absolute; top: 48px; left: 0; z-index: 100; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 1.5rem; min-width: 280px;">
+
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">STATUS</label>
+                                    <div style="position: relative;">
+                                        <select name="status_filter" class="form-control"
+                                            style="font-size: 0.85rem; border-radius: 6px; appearance: none; -webkit-appearance: none; padding-right: 30px; cursor: pointer;">
+                                            <option value="">Semua Status</option>
+                                            @foreach (['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Tidak Prospek', 'Gagal Closing'] as $st)
+                                                <option value="{{ $st }}"
+                                                    {{ request('status_filter') == $st ? 'selected' : '' }}>
+                                                    {{ $st }}</option>
+                                            @endforeach
+                                        </select>
+                                        <i class="fas fa-chevron-down"
+                                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: #94a3b8; pointer-events: none;"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">SUMBER</label>
+                                    <div style="position: relative;">
+                                        <select name="sumber_filter" class="form-control"
+                                            style="font-size: 0.85rem; border-radius: 6px; appearance: none; -webkit-appearance: none; padding-right: 30px; cursor: pointer;">
+                                            <option value="">Semua Sumber</option>
+                                            @foreach ($sumberLeads as $sumber)
+                                                <option value="{{ $sumber }}"
+                                                    {{ request('sumber_filter') == $sumber ? 'selected' : '' }}>
+                                                    {{ $sumber }}</option>
+                                            @endforeach
+                                        </select>
+                                        <i class="fas fa-chevron-down"
+                                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: #94a3b8; pointer-events: none;"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">KOTA</label>
+                                    <div style="position: relative;">
+                                        <select name="kota_filter" class="form-control"
+                                            style="font-size: 0.85rem; border-radius: 6px; appearance: none; -webkit-appearance: none; padding-right: 30px; cursor: pointer;">
+                                            <option value="">Semua Kota</option>
+                                            @foreach ($kotaDomisilis as $kota)
+                                                <option value="{{ $kota }}"
+                                                    {{ request('kota_filter') == $kota ? 'selected' : '' }}>
+                                                    {{ $kota }}</option>
+                                            @endforeach
+                                        </select>
+                                        <i class="fas fa-chevron-down"
+                                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: #94a3b8; pointer-events: none;"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label
+                                        style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">TIPE
+                                        RUMAH</label>
+                                    <div style="position: relative;">
+                                        <select name="tipe_filter" class="form-control"
+                                            style="font-size: 0.85rem; border-radius: 6px; appearance: none; -webkit-appearance: none; padding-right: 30px; cursor: pointer;">
+                                            <option value="">Semua Tipe</option>
+                                            @foreach ($tipeRumahs as $tipe)
+                                                <option value="{{ $tipe->id_tipe }}"
+                                                    {{ request('tipe_filter') == $tipe->id_tipe ? 'selected' : '' }}>
+                                                    {{ $tipe->nama_tipe }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <i class="fas fa-chevron-down"
+                                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: #94a3b8; pointer-events: none;"></i>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div>
+                                <label
+                                    style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">RENTANG
+                                    TANGGAL</label>
+                                <input type="text" name="date_range" id="date_range" value="{{ request('date_range') }}"
+                                    placeholder="Pilih tanggal..." readonly
+                                    style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; height: 38px; padding: 0 10px; font-size: 0.85rem;">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary"
+                                style="width: 100%; height: 38px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;">
+                                Terapkan Filter
+                            </button>
+                        </div>
+                    </div>
                 </div>
-
-                @if (request('search') || request('status_filter'))
-                    <a href="{{ route('leads.index') }}" class="btn" title="Reset Filter"
-                        style="background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; height: 42px; width: 42px; display: flex; align-items: center; justify-content: center; border-radius: 8px; text-decoration: none; transition: 0.2s;">
-                        <i class="fas fa-times"></i>
-                    </a>
-                @endif
-
-                <button type="submit" style="display: none;"></button>
             </form>
 
             <a href="{{ route('leads.create') }}" class="btn btn-primary"
-                style="width: auto; font-size: 0.9rem; padding: 0.5rem 1.2rem; font-weight: 600;">
-                <i class="fas fa-plus" style="margin-right: 5px;"></i> Tambah Lead
+                style="height: 40px; max-width: 145px; width: 100%; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap; flex-shrink: 0;">
+                <i class="fas fa-plus"></i> Tambah Lead
             </a>
         </div>
 
@@ -68,12 +178,30 @@
                             <td style="padding: 6px 10px; color: #94a3b8; font-size: 0.8rem;">{{ $lead->id_lead }}</td>
 
                             <td style="padding: 6px 10px;">
-                                <div style="font-weight: 700; color: #1e293b; font-size: 0.85rem; margin-bottom: 0;">
+                                <div
+                                    style="font-weight: 700; color: #1e293b; font-size: 0.85rem; margin-bottom: 2px; line-height: 1.2;">
                                     {{ $lead->nama_lead }}
+                                    @if ($lead->kota_domisili)
+                                        <span
+                                            style="font-size: 0.7rem; color: #94a3b8; font-weight: normal;">({{ $lead->kota_domisili }})</span>
+                                    @endif
                                 </div>
-                                <a href="" target="_blank"
-                                    style="text-decoration: none; color: #64748b; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i class="fab fa-whatsapp" style="color: #22c55e;"></i> {{ $lead->no_whatsapp }}
+
+                                <div
+                                    style="display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; line-height: 1;">
+                                    <a target="_blank"
+                                        style="text-decoration: none; color: #64748b; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; padding-top: 2px;">
+                                        <i class="fab fa-whatsapp" style="color: #22c55e;"></i> {{ $lead->no_whatsapp }}
+                                    </a>
+
+                                    @if ($lead->tipeRumah)
+                                        <span
+                                            style="background: #f8fafc; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; margin-top: 2px;">
+                                            <i class="fas fa-home" style="color: #94a3b8; font-size: 0.6rem;"></i>
+                                            {{ $lead->tipeRumah->nama_tipe }}
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
 
                             <td style="padding: 6px 10px;">
@@ -204,14 +332,58 @@
             {{ $leads->withQueryString()->links() }}
         </div>
     </div>
-    <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
-        <form action="{{ route('leads.trigger_update') }}" method="POST">
+
+    <div style="margin-top: 1rem; margin-bottom: 2rem; display: flex; justify-content: flex-end; gap: 12px;">
+
+        <form action="{{ route('leads.export') }}" method="GET" style="margin: 0;">
+            @foreach (request()->query() as $key => $val)
+                <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+            @endforeach
+            <button type="submit" class="btn btn-primary"
+                style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px; border-radius: 6px;">
+                <i class="fas fa-file-excel"></i> Export Spreadsheet
+            </button>
+        </form>
+
+        <form action="{{ route('leads.trigger_update') }}" method="POST" style="margin: 0;">
             @csrf
             <button type="submit" class="btn btn-primary"
-                style="display: flex; align-items: center; gap: 8px; font-weight: 600;"
+                style="display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 8px 16px; border-radius: 6px;"
                 onclick="return confirm('Proses ini akan mengecek tanggal follow up dan menurunkan status lead yang tidak aktif. Lanjutkan?')">
                 <i class="fas fa-sync-alt"></i> Update Status
             </button>
         </form>
+
     </div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnFilter = document.getElementById('btnFilter');
+            const filterPanel = document.getElementById('filterPanel');
+
+            if (!btnFilter || !filterPanel) return;
+
+            btnFilter.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isHidden = filterPanel.style.display === 'none' || filterPanel.style.display === '';
+                filterPanel.style.display = isHidden ? 'block' : 'none';
+            });
+
+            document.addEventListener('click', function(e) {
+                const isFlatpickr = e.target.closest('.flatpickr-calendar');
+                const isInsidePanel = filterPanel.contains(e.target);
+
+                if (!isInsidePanel && !isFlatpickr) {
+                    filterPanel.style.display = 'none';
+                }
+            });
+
+            flatpickr("#date_range", {
+                mode: "range",
+                dateFormat: "Y-m-d"
+            });
+        });
+    </script>
 @endsection

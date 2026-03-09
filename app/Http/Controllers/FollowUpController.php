@@ -6,6 +6,7 @@ use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\PicMarketing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class FollowUpController extends Controller
 {
@@ -66,6 +67,14 @@ class FollowUpController extends Controller
             'tgl_survey' => $request->tgl_survey,
             'catatan' => $request->catatan,
         ]);
+
+        $userId = Auth::id();
+        if ($userId) {
+            $activePic = PicMarketing::where('user_id', $userId)->first();
+            if ($activePic) {
+                $activePic->increment('weekly_follow_up_count');
+            }
+        }
 
         if ($lead->status_lead == 'Warm Lead') {
             $lead->increment('follow_up_count');

@@ -112,10 +112,14 @@
     @endif
 
     @if ($isSuper)
-        <div class="dashboard-card">
+        <div class="dashboard-card" style="margin-top: 2rem;">
             <div class="dashboard-card-header">
-                Performa Tim Marketing
+                <div>
+                    <i class="fas fa-chart-line" style="margin-right: 8px; color: #10b981;"></i>
+                    Performa Tim Marketing
+                </div>
             </div>
+
             <div class="table-container" style="border: none;">
                 <table class="custom-table">
                     <thead>
@@ -124,6 +128,7 @@
                             <th style="text-align: center;">Target (KPI)</th>
                             <th style="text-align: center;">Up Convert</th>
                             <th style="text-align: center;">Down Convert</th>
+                            <th style="text-align: center; border-left: 2px dashed #e2e8f0;">Follow-Up Minggu ini</th>
                             <th style="text-align: center;">Pencapaian</th>
                         </tr>
                     </thead>
@@ -142,9 +147,19 @@
                                 <td style="font-weight: 600;">{{ $kpi->nama_pic }}</td>
                                 <td style="text-align: center;">{{ number_format($kpi->kpi_target) }}</td>
                                 <td style="text-align: center; color: #166534; font-weight: 700;">
-                                    {{ number_format($kpi->up_convert) }}</td>
-                                <td style="text-align: center; color: #991b1b;">{{ number_format($kpi->down_convert) }}
+                                    {{ number_format($kpi->up_convert) }}
                                 </td>
+                                <td style="text-align: center; color: #991b1b;">
+                                    {{ number_format($kpi->down_convert) }}
+                                </td>
+
+                                <td style="text-align: center; border-left: 2px dashed #f1f5f9;">
+                                    <span
+                                        style="background: #eff6ff; color: #2563eb; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; border: 1px solid #bfdbfe;">
+                                        {{ number_format($kpi->weekly_follow_up_count ?? 0) }}x
+                                    </span>
+                                </td>
+
                                 <td style="text-align: center;">
                                     <span class="badge {{ $badgeClass }}">{{ number_format($percent, 1) }}%</span>
                                 </td>
@@ -181,101 +196,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($priorities as $fu)
-                        @php
-                            $targetDate = $fu->tgl_follow_up_berikutnya;
-                            $isHMinus1 = $targetDate && \Carbon\Carbon::parse($targetDate)->isTomorrow();
-                            $isToday = $targetDate && \Carbon\Carbon::parse($targetDate)->isToday();
-                            $isOverdue = $targetDate && $targetDate < date('Y-m-d');
-
-                            $dateColor = $isOverdue
-                                ? '#dc2626'
-                                : ($isToday
-                                    ? '#ea580c'
-                                    : ($isHMinus1
-                                        ? '#b91c1c'
-                                        : '#2563eb'));
-                        @endphp
-
-                        <tr style="{{ $isHMinus1 ? 'background: #fef2f2;' : '' }}">
-
-                            <td style="padding: 1rem;">
-                                <strong style="color: {{ $dateColor }}; font-size: 0.9rem;">
-                                    @if ($isHMinus1)
-                                        <i class="fas fa-bell"
-                                            style="color: #ef4444; animation: swing 1s infinite; margin-right:4px;"></i>
-                                    @endif
-                                    {{ $targetDate ? \Carbon\Carbon::parse($targetDate)->translatedFormat('d M') : '-' }}
-                                </strong>
-                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
-                                    <i class="far fa-clock"></i>
-                                    {{ $fu->jam_follow_up_berikutnya ? \Carbon\Carbon::parse($fu->jam_follow_up_berikutnya)->format('H:i') : '--:--' }}
-                                </div>
-                                @if ($isOverdue)
-                                    <div
-                                        style="font-size: 0.65rem; color: #dc2626; font-weight: 800; text-transform: uppercase; margin-top: 4px;">
-                                        Terlewat!</div>
-                                @endif
-                            </td>
-
-                            <td style="padding: 1rem;">
-                                <strong>{{ $fu->lead->nama_lead }}</strong><br>
-                                <small style="color: #64748b;">
-                                    <i class="fab fa-whatsapp" style="color: #22c55e;"></i> {{ $fu->lead->no_whatsapp }}
-                                </small>
-                            </td>
-
-                            @if ($isSuper)
-                                <td style="padding: 1rem;">
-                                    <span class="badge"
-                                        style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">{{ $fu->pic->nama_pic ?? '-' }}</span>
-                                </td>
-                            @endif
-
-                            <td style="padding: 1rem;">
-                                <form action="{{ route('leads.update', $fu->lead->id_lead) }}" method="POST">
-                                    @csrf @method('PUT')
-                                    <input type="hidden" name="is_quick_update" value="1">
-                                    <div style="position: relative; display: inline-block;">
-                                        @php
-                                            $slug = Str::slug($fu->lead->status_lead);
-                                        @endphp
-
-                                        <select name="status_lead" onchange="this.form.submit()"
-                                            class="select-status status-{{ $slug }}">
-                                            @foreach (['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Deal', 'Tidak Prospek', 'Gagal Closing'] as $status)
-                                                <option value="{{ $status }}"
-                                                    {{ $fu->lead->status_lead == $status ? 'selected' : '' }}
-                                                    style="background: white; color: #1e293b;">
-                                                    {{ $status }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <i class="fas fa-chevron-down select-icon"></i>
-                                    </div>
-                                </form>
-                            </td>
-
-                            <td style="padding: 1rem;">
-                                <p style="font-size: 0.8rem; color: #475569; line-height: 1.4; margin: 0;">
-                                    {{ Str::limit($fu->hasil_follow_up, 60) }}</p>
-                            </td>
-
-                            <td style="text-align: center; padding: 1rem;">
-                                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                                    <a href="{{ route('followup.followup_execute', $fu->id_lead) }}" class="btn"
-                                        style="color: #b45309; background: #ffedd5; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #fed7aa; text-decoration: none; border-radius: 4px;">
-                                        Eksekusi
-                                    </a>
-
-                                    <a href="{{ route('followup.edit', $fu->id_follow_up) }}" class="btn"
-                                        style="color: #166534; background: #dcfce7; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #bbf7d0; text-decoration: none; border-radius: 4px;">
-                                        Jadwal
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+                    @if ($priorities->isEmpty())
                         <tr>
                             <td colspan="{{ $isSuper ? 6 : 5 }}" class="text-center"
                                 style="padding: 3rem; color: #94a3b8;">
@@ -284,7 +205,140 @@
                                 Tidak ada jadwal urgent saat ini.
                             </td>
                         </tr>
-                    @endforelse
+                    @else
+                        @php
+                            $groupedPriorities = [
+                                '⚠️ Terlewat & Minggu Ini' => collect(),
+                                '📅 Minggu Depan' => collect(),
+                                '🗓️ Mendatang' => collect(),
+                            ];
+
+                            foreach ($priorities as $fu) {
+                                $target = \Carbon\Carbon::parse($fu->tgl_follow_up_berikutnya)->startOfDay();
+
+                                if ($target->isPast() || $target->isCurrentWeek()) {
+                                    $groupedPriorities['⚠️ Terlewat & Minggu Ini']->push($fu);
+                                } elseif ($target->isNextWeek()) {
+                                    $groupedPriorities['📅 Minggu Depan']->push($fu);
+                                } else {
+                                    $groupedPriorities['🗓️ Mendatang']->push($fu);
+                                }
+                            }
+                        @endphp
+
+                        @foreach ($groupedPriorities as $groupName => $items)
+                            @if ($items->isNotEmpty())
+                                <tr style="background: #f8fafc;">
+                                    <td colspan="{{ $isSuper ? 6 : 5 }}"
+                                        style="padding: 10px 15px; font-weight: 700; color: #334155; font-size: 0.85rem; border-bottom: 2px solid #e2e8f0; border-top: {{ $loop->first ? 'none' : '2px solid #e2e8f0' }};">
+                                        {{ $groupName }} <span
+                                            style="font-weight: normal; color: #94a3b8; font-size: 0.75rem; margin-left: 5px;">({{ $items->count() }}
+                                            Jadwal)</span>
+                                    </td>
+                                </tr>
+
+                                @foreach ($items as $fu)
+                                    @php
+                                        $targetDate = $fu->tgl_follow_up_berikutnya;
+                                        $isHMinus1 = $targetDate && \Carbon\Carbon::parse($targetDate)->isTomorrow();
+                                        $isToday = $targetDate && \Carbon\Carbon::parse($targetDate)->isToday();
+                                        $isOverdue = $targetDate && $targetDate < date('Y-m-d');
+
+                                        $dateColor = $isOverdue
+                                            ? '#dc2626'
+                                            : ($isToday
+                                                ? '#ea580c'
+                                                : ($isHMinus1
+                                                    ? '#b91c1c'
+                                                    : '#2563eb'));
+                                    @endphp
+
+                                    <tr style="{{ $isHMinus1 ? 'background: #fef2f2;' : '' }}">
+
+                                        <td style="padding: 1rem;">
+                                            <strong style="color: {{ $dateColor }}; font-size: 0.9rem;">
+                                                @if ($isHMinus1)
+                                                    <i class="fas fa-bell"
+                                                        style="color: #ef4444; animation: swing 1s infinite; margin-right:4px;"></i>
+                                                @endif
+                                                {{ $targetDate ? \Carbon\Carbon::parse($targetDate)->translatedFormat('d M') : '-' }}
+                                            </strong>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
+                                                <i class="far fa-clock"></i>
+                                                {{ $fu->jam_follow_up_berikutnya ? \Carbon\Carbon::parse($fu->jam_follow_up_berikutnya)->format('H:i') : '--:--' }}
+                                            </div>
+                                            @if ($isOverdue)
+                                                <div
+                                                    style="font-size: 0.65rem; color: #dc2626; font-weight: 800; text-transform: uppercase; margin-top: 4px;">
+                                                    Terlewat!</div>
+                                            @endif
+                                        </td>
+
+                                        <td style="padding: 1rem;">
+                                            <strong>{{ $fu->lead->nama_lead }}</strong><br>
+                                            <small style="color: #64748b;">
+                                                <i class="fab fa-whatsapp" style="color: #22c55e;"></i>
+                                                {{ $fu->lead->no_whatsapp }}
+                                            </small>
+                                        </td>
+
+                                        @if ($isSuper)
+                                            <td style="padding: 1rem;">
+                                                <span class="badge"
+                                                    style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">{{ $fu->pic->nama_pic ?? '-' }}</span>
+                                            </td>
+                                        @endif
+
+                                        <td style="padding: 1rem;">
+                                            <form action="{{ route('leads.update', $fu->lead->id_lead) }}"
+                                                method="POST">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="is_quick_update" value="1">
+                                                <div style="position: relative; display: inline-block;">
+                                                    @php
+                                                        $slug = Str::slug($fu->lead->status_lead);
+                                                    @endphp
+
+                                                    <select name="status_lead" onchange="this.form.submit()"
+                                                        class="select-status status-{{ $slug }}">
+                                                        @foreach (['Cold Lead', 'Warm Lead', 'Hot Prospek', 'Deal', 'Tidak Prospek', 'Gagal Closing'] as $status)
+                                                            <option value="{{ $status }}"
+                                                                {{ $fu->lead->status_lead == $status ? 'selected' : '' }}
+                                                                style="background: white; color: #1e293b;">
+                                                                {{ $status }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    <i class="fas fa-chevron-down select-icon"></i>
+                                                </div>
+                                            </form>
+                                        </td>
+
+                                        <td style="padding: 1rem;">
+                                            <p style="font-size: 0.8rem; color: #475569; line-height: 1.4; margin: 0;">
+                                                {{ Str::limit($fu->hasil_follow_up, 60) }}</p>
+                                        </td>
+
+                                        <td style="text-align: center; padding: 1rem;">
+                                            <div
+                                                style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                                <a href="{{ route('followup.followup_execute', $fu->id_lead) }}"
+                                                    class="btn"
+                                                    style="color: #b45309; background: #ffedd5; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #fed7aa; text-decoration: none; border-radius: 4px;">
+                                                    Eksekusi
+                                                </a>
+
+                                                <a href="{{ route('followup.edit', $fu->id_follow_up) }}" class="btn"
+                                                    style="color: #166534; background: #dcfce7; font-weight: 600; padding: 5px 12px; font-size: 0.75rem; width: auto; display: inline-block; border: 1px solid #bbf7d0; text-decoration: none; border-radius: 4px;">
+                                                    Jadwal
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @endif
+                        @endforeach
+                    @endif
                 </tbody>
             </table>
         </div>

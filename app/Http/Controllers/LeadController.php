@@ -15,17 +15,27 @@ class LeadController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Lead::with('pic')
-            ->where('project_id', session('active_project_id'));
+        $projectId = session('active_project_id');
+
+        $query = Lead::with(['pic', 'tipeRumah'])->where('project_id', $projectId);
+
+        $sumberLeads = Lead::where('project_id', $projectId)
+            ->whereNotNull('sumber_lead')->where('sumber_lead', '!=', '')
+            ->distinct()->pluck('sumber_lead');
+
+        $kotaDomisilis = Lead::where('project_id', $projectId)
+            ->whereNotNull('kota_domisili')->where('kota_domisili', '!=', '')
+            ->distinct()->pluck('kota_domisili');
+
+        $tipeRumahs = \App\Models\TipeRumah::where('project_id', $projectId)->get();
 
         if ($request->filled('search')) {
             $search = $request->search;
-
             $query->where(function($q) use ($search) {
                 $q->where('nama_lead', 'like', '%' . $search . '%')
-                ->orWhere('no_whatsapp', 'like', '%' . $search . '%')
-                ->orWhere('catatan', 'like', '%' . $search . '%')
-                ->orWhere('sumber_lead', 'like', '%' . $search . '%');
+                  ->orWhere('no_whatsapp', 'like', '%' . $search . '%')
+                  ->orWhere('catatan', 'like', '%' . $search . '%')
+                  ->orWhere('kota_domisili', 'like', '%' . $search . '%');
             });
         }
 
@@ -33,10 +43,34 @@ class LeadController extends Controller
             $query->where('status_lead', $request->status_filter);
         }
 
-        $leads = $query->orderBy('id_lead', 'desc')
-                    ->paginate(10);
+        if ($request->filled('tipe_filter')) {
+            $query->where('id_tipe_rumah_minat', $request->tipe_filter);
+        }
 
-        return view('leads.index', compact('leads'));
+        if ($request->filled('date_range')) {
+            $dates = explode(' to ', $request->date_range);
+
+            if (count($dates) == 2) {
+                $query->whereDate('tgl_masuk', '>=', $dates[0])
+                      ->whereDate('tgl_masuk', '<=', $dates[1]);
+            } elseif (count($dates) == 1) {
+                $query->whereDate('tgl_masuk', $dates[0]);
+            }
+        }
+
+        if ($request->filled('sumber_filter')) {
+            $query->where('sumber_lead', $request->sumber_filter);
+        }
+
+        if ($request->filled('kota_filter')) {
+            $query->where('kota_domisili', $request->kota_filter);
+        }
+
+        $query->orderBy('id_lead', 'desc');
+
+        $leads = $query->paginate(15);
+
+        return view('leads.index', compact('leads', 'sumberLeads', 'kotaDomisilis', 'tipeRumahs'));
     }
 
     public function create()
@@ -57,7 +91,6 @@ class LeadController extends Controller
 
     public function store(Request $request)
     {
-
         $request->validate([
             'nama_lead'         => 'required|string|max:100',
             'no_whatsapp'       => 'required|string|max:20',
@@ -91,15 +124,20 @@ class LeadController extends Controller
             'rencana_pembayaran'    => $request->rencana_pembayaran,
             'catatan'               => $request->catatan,
             'status_lead'           => 'Cold Lead',
-            'tgl_masuk'             => now(),
+            'tgl_masuk'             => $request->tgl_masuk ? $request->tgl_masuk : now(),
             'alamat'                => $request->alamat,
             'status_pekerjaan'      => $request->status_pekerjaan,
             'perkiraan_budget'      => $cleanBudget,
             'id_pic'                => $request->id_pic,
         ]);
 
-        return redirect()->route('leads.index')
-            ->with('success', "Lead {$request->nama_lead} berhasil dibuat dengan status Cold Lead.");
+        $pesanSukses = "Lead atas nama {$request->nama_lead} berhasil dibuat dengan status Cold Lead.";
+
+        if ($request->action === 'save_and_new') {
+            return redirect()->route('leads.create')->with('success', $pesanSukses);
+        }
+
+        return redirect()->route('leads.index')->with('success', $pesanSukses);
     }
 
     public function edit($id)
@@ -128,6 +166,11 @@ class LeadController extends Controller
         ]);
 
         $data = $request->all();
+
+        if ($request->has('id_tipe')) {
+            $data['id_tipe_rumah_minat'] = $request->id_tipe;
+            unset($data['id_tipe']);
+        }
 
         if ($request->has('sumber_lead')) {
             $sumberLead = $request->sumber_lead;
@@ -166,16 +209,14 @@ class LeadController extends Controller
         $pesan = "Data lead berhasil diperbarui.";
 
         if ($newStatus == 'Warm Lead' && $oldStatus != 'Warm Lead') {
-
             $userId = Auth::id();
             $activePic = \App\Models\PicMarketing::where('user_id', $userId)->first();
 
             if ($activePic) {
                 $currentPicId = $activePic->id_pic;
-
                 $lead->update(['id_pic' => $currentPicId]);
 
-                FollowUp::create([
+                \App\Models\FollowUp::create([
                     'id_lead'                  => $lead->id_lead,
                     'project_id'               => $lead->project_id,
                     'id_pic'                   => $currentPicId,
@@ -190,7 +231,6 @@ class LeadController extends Controller
             } else {
                 $pesan = "Status diperbarui menjadi Warm Lead (User bukan PIC Marketing).";
             }
-
         } elseif ($newStatus == 'Gagal Closing') {
             $pesan = "Lead ditandai sebagai Gagal Closing.";
         }
@@ -199,7 +239,7 @@ class LeadController extends Controller
             return redirect()->back()->with('success', $pesan);
         }
 
-        $queryParams = $request->except(['_token', '_method', 'status_lead', 'sumber_lead_custom']);
+        $queryParams = $request->except(['_token', '_method', 'status_lead', 'sumber_lead_custom', 'id_tipe']);
         return redirect()->route('leads.index', $queryParams)->with('success', $pesan);
     }
 
@@ -238,4 +278,94 @@ class LeadController extends Controller
 
         return redirect()->back()->with('success', 'Status lead pada proyek ini berhasil diperbarui!');
     }
+
+    public function export(Request $request)
+{
+    $projectId = session('active_project_id');
+
+    $query = Lead::with(['pic', 'tipeRumah'])->where('project_id', $projectId);
+
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nama_lead', 'like', "%{$search}%")
+              ->orWhere('no_whatsapp', 'like', "%{$search}%")
+              ->orWhere('catatan', 'like', "%{$search}%")
+              ->orWhere('kota_domisili', 'like', "%{$search}%");
+        });
+    }
+
+    if ($request->filled('status_filter')) {
+        $query->where('status_lead', $request->status_filter);
+    }
+
+    if ($request->filled('tipe_filter')) {
+        $query->where('id_tipe_rumah_minat', $request->tipe_filter);
+    }
+
+    if ($request->filled('sumber_filter')) {
+        $query->where('sumber_lead', $request->sumber_filter);
+    }
+
+    if ($request->filled('kota_filter')) {
+        $query->where('kota_domisili', $request->kota_filter);
+    }
+
+    if ($request->filled('date_range')) {
+        $dates = explode(' to ', $request->date_range);
+        if (count($dates) == 2) {
+            $query->whereDate('tgl_masuk', '>=', $dates[0])
+                  ->whereDate('tgl_masuk', '<=', $dates[1]);
+        } elseif (count($dates) == 1) {
+            $query->whereDate('tgl_masuk', $dates[0]);
+        }
+    }
+
+    $leads = $query->orderBy('id_lead', 'desc')->get();
+
+    $filename = "Laporan_Leads_" . date('Ymd_His') . ".csv";
+    $headers = [
+        "Content-type"        => "text/csv",
+        "Content-Disposition" => "attachment; filename=$filename",
+        "Pragma"              => "no-cache",
+        "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+        "Expires"             => "0"
+    ];
+
+    $callback = function() use($leads) {
+        $file = fopen('php://output', 'w');
+
+        fputcsv($file, [
+            'ID Lead',
+            'Nama Lead',
+            'No WhatsApp',
+            'Kota',
+            'Tipe Rumah',
+            'Sumber Lead',
+            'Status Lead',
+            'Budget',
+            'PIC Marketing',
+            'Tanggal Masuk'
+        ]);
+
+        foreach ($leads as $row) {
+            fputcsv($file, [
+                $row->id_lead,
+                $row->nama_lead,
+                $row->no_whatsapp,
+                $row->kota_domisili,
+                $row->tipeRumah->nama_tipe ?? '-',
+                $row->sumber_lead,
+                $row->status_lead,
+                $row->perkiraan_budget,
+                $row->pic->nama_pic ?? 'Belum Ada',
+                \Carbon\Carbon::parse($row->tgl_masuk)->format('Y-m-d')
+            ]);
+        }
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 }

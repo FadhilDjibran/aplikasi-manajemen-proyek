@@ -22,7 +22,8 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
                     <label class="form-label">Tanggal Masuk</label>
-                    <input type="date" name="tgl_masuk" class="form-control" value="{{ $lead->tgl_masuk }}">
+                    <input type="date" name="tgl_masuk" class="form-control"
+                        value="{{ $lead->tgl_masuk ? \Carbon\Carbon::parse($lead->tgl_masuk)->format('Y-m-d') : '' }}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nama Lengkap <span style="color:red">*</span></label>
@@ -75,13 +76,13 @@
                             </option>
                         @endforeach
 
-                        <option value="Lainnya" {{ $isCustomSource ? 'selected' : '' }}>Lainnya (Ketik Sendiri)</option>
+                        <option value="Lainnya" {{ $isCustomSource ? 'selected' : '' }}>Lainnya (Tulis Sendiri)</option>
                     </select>
 
                     <input type="text" name="sumber_lead_custom" id="sumber_lead_custom" class="form-control"
                         style="display: {{ $isCustomSource ? 'block' : 'none' }}; margin-top: 10px;"
-                        placeholder="Ketikkan sumber lead lainnya..."
-                        value="{{ $isCustomSource ? $lead->sumber_lead : '' }}" {{ $isCustomSource ? 'required' : '' }}>
+                        placeholder="Tuliskan sumber lead..." value="{{ $isCustomSource ? $lead->sumber_lead : '' }}"
+                        {{ $isCustomSource ? 'required' : '' }}>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tipe Rumah Minat</label>
@@ -115,7 +116,8 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
                     <label class="form-label">Status Lead <span style="color:red">*</span></label>
-                    <select name="status_lead" class="form-control" required>
+                    <select name="status_lead" id="status_lead" class="form-control" required
+                        onchange="toggleGagalClosing()">
                         @foreach (['Tidak Prospek', 'Cold Lead', 'Warm Lead', 'Hot Prospek', 'Gagal Closing'] as $status)
                             <option value="{{ $status }}" {{ $lead->status_lead == $status ? 'selected' : '' }}>
                                 {{ $status }}
@@ -127,6 +129,61 @@
                     <label class="form-label">Status Pekerjaan</label>
                     <input type="text" name="status_pekerjaan" class="form-control"
                         value="{{ $lead->status_pekerjaan }}">
+                </div>
+
+                <div id="form-gagal-closing"
+                    style="display: {{ $lead->status_lead == 'Gagal Closing' ? 'block' : 'none' }}; grid-column: span 2; background: #fef2f2; padding: 1.5rem; border-radius: 8px; border: 1px solid #fecaca;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="form-group">
+                            <label class="form-label" style="color: #991b1b;">Alasan Gagal <span
+                                    style="color:red">*</span></label>
+                            <select name="alasan_gagal" id="alasan_gagal" class="form-control"
+                                {{ $lead->status_lead == 'Gagal Closing' ? 'required' : '' }}>
+
+                                <option value="" disabled {{ is_null($lead->alasan_gagal) ? 'selected' : '' }}>--
+                                    Pilih Alasan --</option>
+
+                                <option value="BI Checking Ditolak"
+                                    {{ $lead->alasan_gagal == 'BI Checking Ditolak' ? 'selected' : '' }}>
+                                    Gagal BI Checking
+                                </option>
+
+                                <option value="Harga Terlalu Tinggi"
+                                    {{ $lead->alasan_gagal == 'Harga Terlalu Tinggi' ? 'selected' : '' }}>
+                                    Harga Terlalu Tinggi
+                                </option>
+
+                                <option value="Lokasi Tidak Cocok"
+                                    {{ $lead->alasan_gagal == 'Lokasi Tidak Cocok' ? 'selected' : '' }}>
+                                    Lokasi Tidak Cocok
+                                </option>
+
+                                <option value="Beli di Kompetitor"
+                                    {{ $lead->alasan_gagal == 'Beli di Kompetitor' ? 'selected' : '' }}>
+                                    Sudah beli di kompetitor
+                                </option>
+
+                                <option value="Uang Muka Belum Cukup"
+                                    {{ $lead->alasan_gagal == 'Uang Muka Belum Cukup' ? 'selected' : '' }}>
+                                    Urusan Pribadi
+                                </option>
+
+                                <option value="Batal Sepihak"
+                                    {{ $lead->alasan_gagal == 'Batal Sepihak' ? 'selected' : '' }}>
+                                    Mengundurkan Diri
+                                </option>
+
+                                <option value="Lainnya" {{ $lead->alasan_gagal == 'Lainnya' ? 'selected' : '' }}>
+                                    Lainnya
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" style="color: #991b1b;">Catatan Gagal (Opsional)</label>
+                            <input type="text" name="catatan_gagal" class="form-control"
+                                value="{{ $lead->catatan_gagal }}" placeholder="Penjelasan singkat...">
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Perkiraan Budget (Rp)</label>
@@ -175,6 +232,7 @@
 
         </div>
     </div>
+
     <script src="{{ asset('js/money-format.js') }}"></script>
     <script>
         function toggleCustomSumber() {
@@ -187,6 +245,22 @@
             } else {
                 customInput.style.display = 'none';
                 customInput.required = false;
+            }
+        }
+
+        // Script untuk menampilkan/menyembunyikan Alasan Gagal Closing
+        function toggleGagalClosing() {
+            var statusBox = document.getElementById('status_lead');
+            var gagalForm = document.getElementById('form-gagal-closing');
+            var alasanInput = document.getElementById('alasan_gagal');
+
+            if (statusBox.value === 'Gagal Closing') {
+                gagalForm.style.display = 'block';
+                alasanInput.required = true;
+            } else {
+                gagalForm.style.display = 'none';
+                alasanInput.required = false;
+                alasanInput.value = ''; // Reset isian
             }
         }
     </script>

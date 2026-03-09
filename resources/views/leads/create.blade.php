@@ -3,13 +3,22 @@
 
 @section('content')
     <div class="mb-4" style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="javascript:history.back()" class="btn"
+        <a href="{{ route('leads.index') }}" class="btn"
             style="background: #f1f5f9; color: #475569; padding: 0.6rem 1.2rem; text-decoration: none; font-weight: 600; border-radius: 8px;">
             &larr; Kembali ke Daftar
         </a>
     </div>
 
     <div class="card" style="padding: 2.5rem; max-width: 1000px; margin: 0 auto;">
+
+        @if (session('success'))
+            <div
+                style="background-color: #dcfce7; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-check-circle"></i>
+                <strong>Leads berhasil ditambahkan!</strong> {{ session('success') }}
+            </div>
+        @endif
+
         <form action="{{ route('leads.store') }}" method="POST">
             @csrf
 
@@ -54,8 +63,8 @@
                         <option value="Agen">Agen</option>
                         <option value="Brosur">Brosur</option>
                         <option value="Banner">Banner</option>
-                        <option value="Banner">Freelance</option>
-                        <option value="Banner">Referral</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Referral">Referral</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                     <input type="text" name="sumber_lead_custom" id="sumber_lead_custom" class="form-control"
@@ -70,9 +79,11 @@
                         @endforeach
                     </select>
                 </div>
+
                 @php
                     $myPic = $pics->where('user_id', Auth::id())->first();
                 @endphp
+
                 <div class="form-group">
                     <label class="form-label">PIC Marketing (Sales)</label>
                     <select name="id_pic" class="form-control"
@@ -127,11 +138,19 @@
                     placeholder="Kebutuhan khusus buyer, hasil chat awal, dll"></textarea>
             </div>
 
-            <div style="margin-top: 2.5rem; text-align: right; border-top: 1px solid #f3f4f6; padding-top: 1.5rem;">
-                <button type="submit" class="btn btn-primary" style="width: auto; padding: 0.8rem 3rem;">
-                    Simpan Lead Baru
+            <div
+                style="margin-top: 2.5rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #f3f4f6; padding-top: 1.5rem;">
+                <button type="submit" name="action" value="save_and_new" class="btn"
+                    style="width: auto; max-width: fit-content; display: inline-flex; align-items: center; justify-content: center; background: #f1f5f9; color: #475569; padding: 0.8rem 1.5rem; font-weight: 600; border: 1px solid #cbd5e1;">
+                    <i class="fas fa-plus-circle" style="margin-right: 5px;"></i> Simpan & Tambah Lagi
                 </button>
+                <button type="submit" name="action" value="save_and_close" class="btn btn-primary"
+                    style="width: auto; max-width: fit-content; display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem 3rem; font-weight: 600;">
+                    <i class="fas fa-save" style="margin-right: 5px;"></i> Simpan Lead
+                </button>
+
             </div>
+
         </form>
     </div>
     <script src="{{ asset('js/money-format.js') }}"></script>

@@ -12,6 +12,7 @@ return new class extends Migration
         $table->increments('id_pic');
         $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
         $table->string('nama_pic', 50);
+        $table->integer('weekly_follow_up_count')->default(0);
         $table->unsignedInteger('down_convert')->default(0);
         $table->unsignedInteger('up_convert')->default(0);
         $table->integer('kpi_target')->default(0);

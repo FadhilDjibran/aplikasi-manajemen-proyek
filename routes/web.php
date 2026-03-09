@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
                 Route::put('/{id}', [LeadController::class, 'update'])->name('update');
                 Route::delete('/{id}', [LeadController::class, 'destroy'])->name('destroy');
                 Route::get('/{id}/detail', [LeadController::class, 'detail'])->name('show');
+                Route::get('/export', [LeadController::class, 'export'])->name('export');
                 Route::post('/trigger-update-status', [LeadController::class, 'triggerUpdateStatus'])->name('trigger_update');
             });
 
