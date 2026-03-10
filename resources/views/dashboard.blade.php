@@ -95,7 +95,7 @@
     </div>
 
     @if ($isAdminOrSuper)
-        <div class="chart-grid">
+        <div class="chart-grid" style="margin-bottom: 1.5rem;">
             <div class="chart-card">
                 <h4 class="chart-title">Statistik Sumber Lead</h4>
                 <div class="chart-container">
@@ -106,6 +106,32 @@
                 <h4 class="chart-title">Analisa Gagal Closing</h4>
                 <div class="chart-container">
                     <canvas id="failReasonChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h4 class="chart-title">Persentase Status Lead</h4>
+                <div class="chart-container">
+                    <canvas id="statusPieChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4 class="chart-title">Persentase Sumber Lead</h4>
+                <div class="chart-container">
+                    <canvas id="sourcePieChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4 class="chart-title">Persentase Kota Domisili</h4>
+                <div class="chart-container">
+                    <canvas id="cityPieChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h4 class="chart-title">Persentase Minat Tipe Rumah</h4>
+                <div class="chart-container">
+                    <canvas id="typePieChart"></canvas>
                 </div>
             </div>
         </div>
@@ -349,8 +375,11 @@
     @if ($isAdminOrSuper)
         <script>
             window.dashboardData = {
-                sourceStats: @json($sourceStats ?? []),
-                failStats: @json($failReasonStats ?? [])
+                sourceStats: @json($sourceStats),
+                failStats: @json($failReasonStats),
+                statusStats: @json($statusStats),
+                cityStats: @json($cityStats),
+                typeStats: @json($typeStats)
             };
         </script>
         <script src="{{ asset('js/dashboard.js') }}"></script>

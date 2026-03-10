@@ -28,22 +28,49 @@ class DashboardController extends Controller
         ];
 
         $sourceStats = [];
+        $failReasonStats = [];
+        $statusStats = [];
+        $cityStats = [];
+        $typeStats = [];
+
         if ($isAdminOrSuper) {
+
             $sourceStats = Lead::where('project_id', $projectId)
                 ->select('sumber_lead', DB::raw('count(*) as total'))
+                ->whereNotNull('sumber_lead')->where('sumber_lead', '!=', '')
                 ->groupBy('sumber_lead')
                 ->pluck('total', 'sumber_lead')
                 ->toArray();
-        }
 
-        $failReasonStats = [];
-        if ($isAdminOrSuper) {
             $failReasonStats = Lead::where('project_id', $projectId)
                 ->where('status_lead', 'Gagal Closing')
                 ->whereNotNull('alasan_gagal')
                 ->select('alasan_gagal', DB::raw('count(*) as total'))
                 ->groupBy('alasan_gagal')
                 ->pluck('total', 'alasan_gagal')
+                ->toArray();
+
+            $statusStats = Lead::where('project_id', $projectId)
+                ->select('status_lead', DB::raw('count(*) as total'))
+                ->groupBy('status_lead')
+                ->pluck('total', 'status_lead')
+                ->toArray();
+
+            $cityStats = Lead::where('project_id', $projectId)
+                ->select('kota_domisili', DB::raw('count(*) as total'))
+                ->whereNotNull('kota_domisili')->where('kota_domisili', '!=', '')
+                ->groupBy('kota_domisili')
+                ->pluck('total', 'kota_domisili')
+                ->toArray();
+
+            $typeStats = DB::table('leads')
+                ->join('tipe_rumah', 'leads.id_tipe_rumah_minat', '=', 'tipe_rumah.id_tipe')
+                ->where('leads.project_id', $projectId)
+                ->where('tipe_rumah.project_id', $projectId)
+                ->whereNotNull('leads.id_tipe_rumah_minat')
+                ->select('tipe_rumah.nama_tipe', DB::raw('count(leads.id_lead) as total'))
+                ->groupBy('tipe_rumah.nama_tipe')
+                ->pluck('total', 'nama_tipe')
                 ->toArray();
         }
 
@@ -88,6 +115,17 @@ class DashboardController extends Controller
             ->doesntHave('transaksi')
             ->count();
 
-        return view('dashboard', compact('stats', 'priorities', 'personalKpi', 'allKpiData', 'sourceStats', 'pendingHotProspek', 'failReasonStats'));
+        return view('dashboard', compact(
+            'stats',
+            'priorities',
+            'personalKpi',
+            'allKpiData',
+            'sourceStats',
+            'failReasonStats',
+            'statusStats',
+            'cityStats',
+            'typeStats',
+            'pendingHotProspek'
+        ));
     }
 }
