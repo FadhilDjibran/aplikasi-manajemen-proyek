@@ -25,7 +25,7 @@
                 </div>
                 <div>
                     <h4 style="margin: 0; font-size: 1rem; font-weight: 700;">
-                        Perhatian! Ada {{ $overdueCount }} Jadwal Terlewat
+                        Perhatian! Ada {{ $overdueCount }} Jadwal Follow-Up Terlewat
                     </h4>
                     <p style="margin: 0; font-size: 0.875rem;">
                         Segera cek tabel Follow Up di bawah.
@@ -56,7 +56,7 @@
                 <div>
                     <h4 style="margin: 0; color: #9a3412; font-size: 0.9rem; font-weight: 700;">Menunggu input data</h4>
                     <p style="margin: 0; color: #c2410c; font-size: 0.8rem; opacity: 0.9;">
-                        Ada <strong>{{ $pendingHotProspek }} Lead Hot Prospek</strong> yang belum input transaksi.
+                        Ada <strong>{{ $pendingHotProspek }} Lead berstatus Hot Prospek</strong> yang belum input transaksi.
                     </p>
                 </div>
             </div>

@@ -32,7 +32,7 @@ function openEditModal(user, kpiValue) {
 
     if (currentUserRole === 'Admin') {
         if ((user.role === 'Super_Admin' || user.role === 'Admin') && user.id !== currentUserId) {
-            alert("Akses ditolak: Anda tidak dapat mengedit Super Admin atau Admin lain.");
+            alert("Anda tidak dapat mengedit Super Admin atau Admin lain.");
             return;
         }
     }

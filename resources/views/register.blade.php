@@ -1,6 +1,6 @@
 @extends('layouts.plain')
 
-@section('title', 'Daftar Akun - Aplikasi Manajemen Proyek')
+@section('title', 'Daftar Akun')
 
 @section('content')
 

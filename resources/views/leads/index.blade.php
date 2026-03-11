@@ -132,8 +132,8 @@
 
                             <div>
                                 <label
-                                    style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">RENTANG
-                                    TANGGAL</label>
+                                    style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 5px;">Rentang
+                                    Tanggal</label>
                                 <input type="text" name="date_range" id="date_range" value="{{ request('date_range') }}"
                                     placeholder="Pilih tanggal..." readonly
                                     style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; height: 38px; padding: 0 10px; font-size: 0.85rem;">
@@ -321,7 +321,7 @@
                             <td colspan="8" class="text-center" style="padding: 3rem; color: #94a3b8;">
                                 <i class="fas fa-inbox"
                                     style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.3;"></i>
-                                <span style="font-size: 0.9rem;">Tidak ada data lead ditemukan.</span>
+                                <span style="font-size: 0.9rem;">Tidak ada data lead yang ditemukan.</span>
                             </td>
                         </tr>
                     @endforelse

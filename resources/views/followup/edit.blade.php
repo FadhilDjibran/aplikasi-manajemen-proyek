@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Reschedule Follow Up')
+@section('title', 'Atur Jadwal Follow Up')
 
 @section('content')
     <div class="mb-4" style="display: flex; justify-content: space-between; align-items: center;">
@@ -13,7 +13,7 @@
         <div style="text-align: center; margin-bottom: 2rem;">
             <h4 style="margin-bottom: 0.5rem; font-weight: 700;">Atur Ulang Jadwal</h4>
             <p style="color: #64748b; font-size: 0.9rem;">
-                Menentukan waktu tindak lanjut berikutnya untuk Lead:<br>
+                Menentukan waktu Follow-up berikutnya untuk:<br>
                 <strong style="color: #0f172a; font-size: 1.1rem;">{{ $followup->lead->nama_lead }}</strong>
             </p>
         </div>

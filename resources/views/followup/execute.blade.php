@@ -63,7 +63,7 @@
             <div class="card" style="padding: 2rem; border-top: 4px solid #2563eb;">
                 <h4 style="margin-bottom: 1.5rem; font-weight: 700;">
                     <i class="fas fa-pen-nib" style="margin-right: 8px; color: #2563eb;"></i>
-                    Catat Hasil Interaksi Baru
+                    Catat Hasil Interaksi Terbaru
                 </h4>
 
                 <form action="{{ route('followup.process', $lead->id_lead) }}" method="POST">
@@ -72,7 +72,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
 
                         <div class="form-group">
-                            <label class="form-label">Media Kontak</label>
+                            <label class="form-label">Cara Kontak</label>
                             <select name="channel_follow_up" class="form-control">
                                 <option value="Whatsapp" selected>Whatsapp</option>
                             </select>
@@ -91,7 +91,7 @@
                         </div>
 
                         <div class="form-group" style="grid-column: span 2;">
-                            <label class="form-label">Hasil Pembicaraan Hari Ini <span style="color:red">*</span></label>
+                            <label class="form-label">Hasil Follow up <span style="color:red">*</span></label>
                             <textarea name="hasil" class="form-control" rows="3" required
                                 placeholder="Tuliskan ringkasan obrolan Anda dengan Lead..."></textarea>
                         </div>
@@ -118,7 +118,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Catatan Internal</label>
+                            <label class="form-label">Catatan</label>
                             <input type="text" name="catatan" class="form-control"
                                 placeholder="Catatan khusus untuk sales">
                         </div>

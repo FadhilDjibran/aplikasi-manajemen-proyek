@@ -112,7 +112,7 @@
                                     Leads
                                 </span>
                             </div>
-                            <small style="color: #64748b;">Target jumlah Leads per PIC</small>
+                            <small style="color: #64748b;">Target jumlah konversi per PIC</small>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">+ Simpan</button>

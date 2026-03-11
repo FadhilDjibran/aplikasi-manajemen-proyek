@@ -90,12 +90,12 @@ class UserController extends Controller
 
             $isPromoting = in_array($request->role, ['Admin', 'Super_Admin']);
             if ($isPromoting && $user->id !== $auth->id) {
-                return redirect()->back()->with('error', 'Anda tidak berhak mempromosikan user menjadi Admin atau Super Admin.');
+                return redirect()->back()->with('error', 'Anda tidak bisa memberikan hak akses Admin atau Super Admin.');
             }
         }
         else {
             if ($user->id !== $auth->id) {
-                return redirect()->back()->with('error', 'Akses ditolak: Anda hanya dapat mengubah profil Anda sendiri.');
+                return redirect()->back()->with('error', 'Anda hanya dapat mengubah profil Anda sendiri.');
             }
 
             if ($request->has('role') && $request->role !== $user->role) {
@@ -139,7 +139,7 @@ class UserController extends Controller
         $auth = Auth::user();
 
         if ($user->id == $auth->id) {
-            return redirect()->back()->with('error', 'Anda tidak bisa menghapus akun sendiri!');
+            return redirect()->back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
 
         if ($auth->role === 'Admin' && $user->role !== 'Marketing') {
@@ -149,7 +149,7 @@ class UserController extends Controller
         PicMarketing::where('user_id', $user->id)->delete();
         $user->delete();
 
-        return redirect()->route('index')->with('success', 'User berhasil dihapus!');
+        return redirect()->route('index')->with('success', 'User berhasil dihapus.');
     }
 
     private function syncToPicMarketing($user, $targetKpi = 0)
@@ -170,6 +170,6 @@ class UserController extends Controller
     public function triggerCleanupUnassigned()
     {
         Artisan::call('users:cleanup-unassigned');
-        return redirect()->back()->with('success', 'Pembersihan selesai! User berhasil dihapus.');
+        return redirect()->back()->with('success', 'User berhasil dihapus.');
     }
 }

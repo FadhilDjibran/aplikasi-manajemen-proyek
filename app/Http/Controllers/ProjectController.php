@@ -32,7 +32,6 @@ class ProjectController extends Controller
         ];
 
         if ($request->hasFile('logo')) {
-            // Simpan di folder: storage/app/public/logos
             $path = $request->file('logo')->store('logos', 'public');
             $data['logo'] = $path;
         }

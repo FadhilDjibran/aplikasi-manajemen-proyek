@@ -110,7 +110,7 @@
                 </div>
 
                 <form action="{{ route('projects.destroy', $project->id) }}" method="POST"
-                    onsubmit="return confirm('PERINGATAN KERAS!\n\nAnda (Super Admin) akan menghapus proyek: {{ $project->nama_proyek }}\n\nMenghapus proyek ini akan MENGHAPUS SEMUA DATA terkait.\nTindakan ini TIDAK DAPAT DIBATALKAN.\n\nKetik OK jika Anda benar-benar yakin.')">
+                    onsubmit="return confirm('PERINGATAN KERAS!\n\nAnda akan menghapus proyek: {{ $project->nama_proyek }}\n\nMenghapus proyek ini akan menghapus semua data yang ada didalamnya.\nTindakan ini tidak dapat dibatalkan.\n\nKlik tombol OK jika Anda benar-benar yakin untuk menghapus proyek ini.')">
                     @csrf
                     @method('DELETE')
 

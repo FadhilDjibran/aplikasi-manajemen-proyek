@@ -33,8 +33,8 @@
             style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
 
             <div style="width: 100%;">
-                <h2 style="margin: 0; font-weight: 700;">Ruang Kerja Anda</h2>
-                <p style="margin: 5px 0 0 0; opacity: 0.8;">Pilih proyek aktif untuk mulai mengelola.</p>
+                <h2 style="margin: 0; font-weight: 700;">Proyek Anda</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.8;">Pilih salah satu proyek untuk mulai mengelola.</p>
             </div>
 
             <div class="header-actions" style="display: flex; gap: 10px;">
@@ -72,7 +72,7 @@
                     </h3>
 
                     <p class="project-desc" style="flex-grow: 1;">
-                        Akses monitoring data CRM, Progress Pembangunan, dan Laporan Keuangan untuk
+                        Akses CRM, Progress Pembangunan, dan Laporan Keuangan untuk
                         <strong style="color: var(--bg-main);">{{ $project->nama_proyek }}</strong>.
                     </p>
 
@@ -87,8 +87,8 @@
                     <i class="fas fa-folder-open"
                         style="font-size: 3rem; color: var(--accent); margin-bottom: 1.5rem; display: block;"></i>
                     <h3 class="empty-title" style="color: var(--accent);">Belum Ada Proyek</h3>
-                    <p class="empty-subtitle" style="color: rgba(255,255,255,0.7);">Silakan hubungi super admin untuk
-                        mendaftarkan proyek pertama Anda.</p>
+                    <p class="empty-subtitle" style="color: rgba(255,255,255,0.7);">Silahkan membuat proyek terlebih dahulu.
+                    </p>
                 </div>
             @endforelse
 

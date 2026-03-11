@@ -11,12 +11,10 @@ class TipeRumahController extends Controller
     {
         $projectId = session('active_project_id');
 
-        // Ambil data berdasarkan project aktif
         $tipeRumah = TipeRumah::where('project_id', $projectId)
             ->orderBy('nama_tipe', 'asc')
             ->get();
 
-        // PENTING: Memanggil file 'resources/views/tipe_rumah.blade.php'
         return view('tipe_rumah', compact('tipeRumah'));
     }
 
@@ -31,7 +29,6 @@ class TipeRumahController extends Controller
             'nama_tipe' => $request->nama_tipe,
         ]);
 
-        // Redirect ke route 'tipe_rumah.index'
         return redirect()->route('tipe_rumah.index')
             ->with('success', 'Tipe rumah berhasil ditambahkan');
     }
@@ -57,7 +54,7 @@ class TipeRumahController extends Controller
         $tipe = TipeRumah::findOrFail($id);
 
          if($tipe->leads()->exists()) {
-            return back()->with('error', 'Gagal hapus! Tipe ini sedang digunakan oleh data Leads.');
+            return back()->with('error', 'Tidak bisa menghapus tipe ini karena masih digunakan oleh data Leads.');
          }
 
         $tipe->delete();

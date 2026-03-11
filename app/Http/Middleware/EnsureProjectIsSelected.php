@@ -12,7 +12,7 @@ class EnsureProjectIsSelected
     {
         if (!session()->has('active_project_id')) {
             return redirect()->route('projects.index')
-                ->with('error', 'Silakan pilih proyek terlebih dahulu untuk mengakses Dashboard.');
+                ->with('error', 'Silakan pilih proyek untuk mengakses Dashboard.');
         }
 
         return $next($request);

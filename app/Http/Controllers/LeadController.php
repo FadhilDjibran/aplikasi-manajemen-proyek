@@ -27,7 +27,7 @@ class LeadController extends Controller
             ->whereNotNull('kota_domisili')->where('kota_domisili', '!=', '')
             ->distinct()->pluck('kota_domisili');
 
-        $tipeRumahs = \App\Models\TipeRumah::where('project_id', $projectId)->get();
+        $tipeRumahs = TipeRumah::where('project_id', $projectId)->get();
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -83,7 +83,7 @@ class LeadController extends Controller
         })->get();
 
         if ($pics->isEmpty()) {
-            session()->flash('warning', 'Belum ada PIC Marketing di proyek ini. Harap input data PIC terlebih dahulu.');
+            session()->flash('warning', 'Belum ada PIC Marketing di proyek ini. Lakukan input data terlebih dahulu.');
         }
 
         return view('leads.create', compact('tipeRumah', 'pics'));
@@ -229,10 +229,10 @@ class LeadController extends Controller
 
                 $pesan = "Status naik ke Warm Lead & Jadwal Follow Up baru berhasil dibuat.";
             } else {
-                $pesan = "Status diperbarui menjadi Warm Lead (User bukan PIC Marketing).";
+                $pesan = "Status diperbarui menjadi Warm Lead.";
             }
         } elseif ($newStatus == 'Gagal Closing') {
-            $pesan = "Lead ditandai sebagai Gagal Closing.";
+            $pesan = "Status diperbarui menjadi Gagal Closing.";
         }
 
         if ($request->has('is_quick_update')) {
@@ -269,14 +269,14 @@ class LeadController extends Controller
         $projectId = session('active_project_id');
 
         if (!$projectId) {
-            return redirect()->back()->with('error', 'Gagal: Tidak ada proyek yang aktif saat ini.');
+            return redirect()->back()->with('error', 'Tidak ada proyek yang aktif saat ini.');
         }
 
         Artisan::call('leads:update-status', [
             'project_id' => $projectId
         ]);
 
-        return redirect()->back()->with('success', 'Status lead pada proyek ini berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Status lead berhasil diperbarui!');
     }
 
     public function export(Request $request)

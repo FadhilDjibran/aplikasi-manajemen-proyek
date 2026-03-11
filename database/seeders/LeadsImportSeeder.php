@@ -14,7 +14,7 @@ class LeadsImportSeeder extends Seeder
         $csvFile = database_path('seeders/CSV Lead new.csv');
 
         if (!file_exists($csvFile)) {
-            $this->command->error("File CSV tidak ditemukan di: $csvFile");
+            $this->command->error("File CSV tidak ditemukan di $csvFile");
             return;
         }
 

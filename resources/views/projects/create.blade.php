@@ -1,5 +1,5 @@
 @extends('layouts.plain')
-@section('title', 'Tambah Proyek Baru')
+@section('title', 'Tambah Proyek')
 
 @section('content')
     <nav class="navbar" style="padding: 1.5rem 2rem; margin-bottom: 2rem;">
@@ -41,7 +41,6 @@
                         @enderror
                     </div>
 
-                    {{-- Input Logo --}}
                     <div class="form-group mb-5">
                         <label
                             style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block; font-size: 0.9rem;">

@@ -93,7 +93,7 @@ class FollowUpController extends Controller
             }
         }
 
-        return redirect()->route('followup.index')->with('success', 'Follow Up berhasil direkam.');
+        return redirect()->route('followup.index')->with('success', 'Follow Up berhasil disimpan.');
     }
 
     public function edit($id)

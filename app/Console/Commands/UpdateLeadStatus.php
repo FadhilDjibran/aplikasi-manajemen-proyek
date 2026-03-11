@@ -9,11 +9,11 @@ use Carbon\Carbon;
 class UpdateLeadStatus extends Command
 {
     protected $signature = 'leads:update-status {project_id?}';
-    protected $description = 'Menurunkan status lead yang tidak di-follow up';
+    protected $description = 'Menurunkan status lead yang tidak difollowup';
 
     public function handle()
     {
-        $this->info('Memulai pengecekan status leads...');
+        $this->info('Mengecek status leads...');
         $projectId = $this->argument('project_id');
         $batasWarm = Carbon::now()->subDays(5)->format('Y-m-d');
 

@@ -156,8 +156,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center" style="padding: 4rem; color: #94a3b8;">Tidak ada tugas
-                                aktif dalam daftar ini.</td>
+                            <td colspan="6" class="text-center" style="padding: 4rem; color: #94a3b8;">Tidak ada follow
+                                up yang aktif.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -248,7 +248,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center" style="padding: 2rem; color: #cbd5e1;">Tidak ada
-                                    data dalam arsip.</td>
+                                    data.</td>
                             </tr>
                         @endforelse
                     </tbody>

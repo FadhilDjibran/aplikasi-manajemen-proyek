@@ -1,7 +1,6 @@
 
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Script Hot Prospek dimuat.');
 
     let currentSelectElement = null;
 
@@ -15,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
             leadNameLabel.innerText = name;
             modal.style.display = 'flex';
         } else {
-            console.error('Elemen modal transaksi tidak ditemukan.');
+            console.error('Modal tidak ditemukan.');
         }
     };
 

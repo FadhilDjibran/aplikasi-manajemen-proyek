@@ -10,11 +10,11 @@ class CleanupUnassignedUsers extends Command
 {
     protected $signature = 'users:cleanup-unassigned';
 
-    protected $description = 'Menghapus otomatis user yang tidak diberi role selama 7 hari sejak mendaftar';
+    protected $description = 'Menghapus otomatis user yang tidak mempunyai role selama 7 hari sejak mendaftar';
 
     public function handle()
     {
-        $this->info('Memulai pengecekan user tanpa role...');
+        $this->info('Mengecek user tanpa role...');
 
         $batasWaktu = Carbon::now()->subDays(7)->format('Y-m-d H:i:s');
 
@@ -32,6 +32,6 @@ class CleanupUnassignedUsers extends Command
             $hapusCount++;
         }
 
-        $this->info("Selesai! Berhasil menghapus $hapusCount user yang menggantung.");
+        $this->info("Berhasil menghapus $hapusCount user yang tidak mempunyai role.");
     }
 }

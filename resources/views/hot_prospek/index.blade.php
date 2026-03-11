@@ -12,8 +12,9 @@
             </div>
             <div>
                 <strong style="color: #9a3412; font-size: 0.95rem;">Perhatian!</strong>
-                <span style="color: #c2410c; font-size: 0.9rem;">Ada <b>{{ $pendingCount }}</b> Hot Prospek yang belum
-                    memiliki data transaksi Booking. Segera input data.</span>
+                <span style="color: #c2410c; font-size: 0.9rem;">Ada <b>{{ $pendingCount }}</b> leads berstatus Hot Prospek
+                    yang belum
+                    memiliki data transaksi Booking. Segera input datanya.</span>
             </div>
         </div>
     @endif
@@ -28,7 +29,7 @@
                     🔥 Daftar Hot Prospek
                 </h3>
                 <p style="font-size: 0.875rem; color: #64748b; margin: 0;">
-                    Input transaksi atau tandai jika batal closing.
+                    Input transaksi atau ubah menjadi gagal closing.
                 </p>
             </div>
             <form action="{{ route('hot_prospek.index') }}" method="GET" style="display: flex; gap: 0.5rem;">

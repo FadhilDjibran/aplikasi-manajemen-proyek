@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Edit Profil & Status Lead')
+@section('title', 'Edit Lead')
 
 @section('content')
     <div class="mb-4" style="display: flex; justify-content: space-between; align-items: center;">
@@ -248,7 +248,6 @@
             }
         }
 
-        // Script untuk menampilkan/menyembunyikan Alasan Gagal Closing
         function toggleGagalClosing() {
             var statusBox = document.getElementById('status_lead');
             var gagalForm = document.getElementById('form-gagal-closing');
@@ -260,7 +259,7 @@
             } else {
                 gagalForm.style.display = 'none';
                 alasanInput.required = false;
-                alasanInput.value = ''; // Reset isian
+                alasanInput.value = '';
             }
         }
     </script>
