@@ -1,9 +1,11 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Userstamps;
 
 class Lead extends Model
 {
+    use Userstamps;
     protected $table = 'leads';
     protected $primaryKey = 'id_lead';
     public $incrementing = false;
@@ -74,5 +76,9 @@ class Lead extends Model
                 }
             }
         });
+    }
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

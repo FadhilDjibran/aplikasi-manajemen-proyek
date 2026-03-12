@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Userstamps;
 
 class TransaksiLead extends Model
 {
+    use Userstamps;
     use HasFactory;
-
     protected $table = 'transaksi_lead';
     protected $primaryKey = 'id_transaksi';
 

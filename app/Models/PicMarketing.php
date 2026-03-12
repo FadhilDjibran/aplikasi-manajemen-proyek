@@ -1,9 +1,11 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Userstamps;
 
 class PicMarketing extends Model
 {
+    use Userstamps;
     protected $table = 'pic_marketing';
     protected $primaryKey = 'id_pic';
     protected $guarded = [];

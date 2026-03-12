@@ -186,11 +186,33 @@
             </div>
         @endif
 
-        <div style="margin-top: 3rem; text-align: right; border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
-            <a href="{{ route('leads.edit', $lead->id_lead) }}" class="btn btn-primary"
-                style="padding: 0.75rem 2.5rem; font-weight: 600; border-radius: 8px;">
-                <i class="fas fa-edit"></i> Edit Data Lead
-            </a>
+        <div
+            style="margin-top: 3rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
+
+            <div style="font-size: 0.85rem; color: #94a3b8; text-align: left;">
+                @if ($lead->updated_by)
+                    <div style="margin-bottom: 0.2rem;">
+                        <i class="fas fa-history" style="margin-right: 5px; opacity: 0.7;"></i>
+                        Terakhir diedit oleh <strong style="color: #64748b;">{{ $lead->editor->name ?? 'Sistem' }}</strong>
+                    </div>
+                    <div style="margin-left: 18px; font-size: 0.8rem;">
+                        pada {{ $lead->updated_at->translatedFormat('d F Y, H:i') }} WIB
+                    </div>
+                @else
+                    <div>
+                        <i class="fas fa-info-circle" style="margin-right: 5px; opacity: 0.7;"></i>
+                        Belum pernah diedit
+                    </div>
+                @endif
+            </div>
+
+            <div>
+                <a href="{{ route('leads.edit', $lead->id_lead) }}" class="btn btn-primary"
+                    style="padding: 0.75rem 2.5rem; font-weight: 600; border-radius: 8px;">
+                    <i class="fas fa-edit"></i> Edit Data Lead
+                </a>
+            </div>
+
         </div>
 
     </div>

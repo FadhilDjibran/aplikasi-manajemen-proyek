@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Userstamps;
 
 class TipeRumah extends Model
 {
+    use Userstamps;
     protected $table = 'tipe_rumah';
     protected $primaryKey = 'id_tipe';
 
