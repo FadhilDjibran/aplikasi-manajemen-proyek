@@ -55,6 +55,11 @@
                     <i class="fas fa-fire" style="width: 24px;"></i> Hot Prospek
                 </a>
 
+                <a href="{{ route('hot_prospek.index') }}"
+                    class="sidebar-link {{ request()->routeIs('hot_prospek.*') ? 'active' : '' }}">
+                    <i class="fas fa-fire" style="width: 24px;"></i> Manajemen Keuangan
+                </a>
+
                 @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Super_Admin')
                     <a href="{{ route('tipe_rumah.index') }}"
                         class="sidebar-link {{ request()->routeIs('tipe_rumah.*') ? 'active' : '' }}">
