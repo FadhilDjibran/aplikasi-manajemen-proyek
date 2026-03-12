@@ -9,6 +9,8 @@ use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TipeRumahController;
 use App\Http\Controllers\HotProspekController;
+use App\Http\Controllers\CoaController;
+use App\Http\Controllers\KeuanganController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -44,6 +46,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::middleware('role:Super_Admin,Admin,Marketing')->group(function () {
+            Route::resource('coa', CoaController::class);
+            Route::resource('keuangan', KeuanganController::class);
 
             Route::prefix('leads')->name('leads.')->group(function () {
                 Route::get('/', [LeadController::class, 'index'])->name('index');
