@@ -11,7 +11,14 @@
 
     <div class="card"
         style="padding: 2.5rem; max-width: 1000px; margin: 0 auto; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-
+        @if (session('success'))
+            <div
+                style="background-color: #f0fdf4; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #bbf7d0;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> {{ session('success') }}
+                </div>
+            </div>
+        @endif
         @if ($errors->any())
             <div
                 style="background-color: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #fecaca;">
@@ -97,7 +104,8 @@
                         <option value="">-- Pilih Laporan --</option>
                         <option value="Neraca" {{ old('jenis_laporan') == 'Neraca' ? 'selected' : '' }}>Neraca (NRC)
                         </option>
-                        <option value="Laba Rugi" {{ old('jenis_laporan') == 'Laba Rugi' ? 'selected' : '' }}>Laba Rugi (LR)
+                        <option value="Laba Rugi" {{ old('jenis_laporan') == 'Laba Rugi' ? 'selected' : '' }}>Laba Rugi
+                            (LR)
                         </option>
                     </select>
                 </div>

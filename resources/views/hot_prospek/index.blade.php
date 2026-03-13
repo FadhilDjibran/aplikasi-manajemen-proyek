@@ -154,6 +154,7 @@
                         <th style="padding: 15px; text-align: left;">Jenis Pembayaran</th>
                         <th style="padding: 15px; text-align: left;">Nominal</th>
                         <th style="padding: 15px; text-align: left;">Tgl Bayar</th>
+                        <th style="padding: 15px; text-align: center;">Status Finance</th>
                         <th style="padding: 15px; text-align: left;">Keterangan</th>
                     </tr>
                 </thead>
@@ -176,13 +177,33 @@
                             <td style="padding: 15px; color: #475569;">
                                 {{ \Carbon\Carbon::parse($trx->tgl_pembayaran)->format('d/m/Y') }}
                             </td>
+
+                            <td style="padding: 15px; text-align: center;">
+                                @if ($trx->status_keuangan === 'approved')
+                                    <span
+                                        style="background: #f0fdf4; color: #166534; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 5px;">
+                                        <i class="fas fa-check-circle"></i> Approved
+                                    </span>
+                                @elseif($trx->status_keuangan === 'rejected')
+                                    <span
+                                        style="background: #fef2f2; color: #991b1b; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fecaca; display: inline-flex; align-items: center; gap: 5px;">
+                                        <i class="fas fa-times-circle"></i> Rejected
+                                    </span>
+                                @else
+                                    <span
+                                        style="background: #fffbeb; color: #b45309; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fde68a; display: inline-flex; align-items: center; gap: 5px;">
+                                        <i class="fas fa-clock"></i> Pending
+                                    </span>
+                                @endif
+                            </td>
+
                             <td style="padding: 15px; color: #64748b; font-size: 0.85rem; max-width: 250px;">
                                 {{ $trx->keterangan ?? '-' }}
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center" style="padding: 3rem; color: #cbd5e1;">
+                            <td colspan="7" class="text-center" style="padding: 3rem; color: #cbd5e1;">
                                 Belum ada riwayat transaksi.
                             </td>
                         </tr>

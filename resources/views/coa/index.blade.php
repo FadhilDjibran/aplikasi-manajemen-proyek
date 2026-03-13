@@ -4,11 +4,14 @@
 @section('content')
 
 
-    <div class="card" style="width: 100%; max-width: 100%; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <div class="card"
+        style="width: 100%; min-width:950px; max-width: 100%; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
         @if (session('success'))
             <div
-                style="padding: 1rem 1.5rem; background-color: #ecfdf5; color: #065f46; border-bottom: 1px solid #a7f3d0; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-check-circle"></i> {{ session('success') }}
+                style="background-color: #f0fdf4; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #bbf7d0;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> {{ session('success') }}
+                </div>
             </div>
         @endif
         <div
@@ -111,35 +114,36 @@
                 <thead
                     style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.75rem;">
                     <tr>
-                        <th style="padding: 12px 15px; width: 60px;">NO</th>
-                        <th style="padding: 12px 15px text-align: center; ">Kategori Akun</th>
-                        <th style="padding: 12px 15px; ">Nama Akun</th>
-                        <th style="padding: 12px 15px; width: 80px; text-align: center;">Posisi</th>
-                        <th style="padding: 12px 15px; width: 80px; text-align: center;">Jenis</th>
-                        <th style="padding: 12px 15px; text-align: center; width: 130px;">Saldo Awal (DB)</th>
-                        <th style="padding: 12px 15px; text-align: center; width: 130px;">Saldo Awal (KR)</th>
-                        <th style="padding: 12px 15px; text-align: center; width: 140px;">Saldo Akhir</th>
-                        <th style="padding: 12px 15px; text-align: center; width: 100px;">Aksi</th>
+                        <th style="padding: 12px 10px; width: 40px; text-align: center;">NO</th>
+                        <th style="padding: 12px 10px; text-align: left;">Kategori Akun</th>
+                        <th style="padding: 12px 10px; text-align: left;">Nama Akun</th>
+                        <th style="padding: 12px 5px; width: 50px; text-align: center;">Posisi</th>
+                        <th style="padding: 12px 5px; width: 50px; text-align: center;">Jenis</th>
+                        <th style="padding: 12px 10px; text-align: right; width: 110px;">Saldo Awal (DB)</th>
+                        <th style="padding: 12px 10px; text-align: right; width: 110px;">Saldo Awal (KR)</th>
+                        <th style="padding: 12px 10px; text-align: right; width: 120px;">Saldo Akhir</th>
+                        <th style="padding: 12px 10px; text-align: center; width: 90px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($coas as $coa)
                         <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;">
-                            <td style="padding: 6px 15px; color: #64748b; font-weight: 700;">
+                            <td
+                                style="padding: 6px 10px; color: #64748b; font-weight: 700; font-size: 0.7rem; text-align: center;">
                                 {{ $coa->no_akun }}
                             </td>
 
-                            <td style="padding: 6px 15px; color: #475569;">
+                            <td style="padding: 6px 10px; color: #475569; font-size: 0.8rem;">
                                 {{ $coa->kategori_akun }}
                             </td>
 
-                            <td style="padding: 6px 15px;">
-                                <div style="font-weight: 700; color: #1e293b; font-size: 0.85rem;">
+                            <td style="padding: 6px 10px;">
+                                <div style="font-weight: 700; color: #1e293b; font-size: 0.8rem;">
                                     {{ $coa->nama_akun }}
                                 </div>
                             </td>
 
-                            <td style="padding: 6px 15px; text-align: center;">
+                            <td style="padding: 6px 5px; text-align: center;">
                                 @php
                                     $posisiStyle =
                                         $coa->posisi_normal == 'Debit'
@@ -147,34 +151,32 @@
                                             : 'background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5;';
                                 @endphp
                                 <span
-                                    style="{{ $posisiStyle }} padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+                                    style="{{ $posisiStyle }} padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
                                     {{ $coa->posisi_normal == 'Debit' ? 'D' : 'K' }}
                                 </span>
                             </td>
 
-                            <td style="padding: 6px 15px; text-align: center;">
+                            <td style="padding: 6px 5px; text-align: center;">
                                 <span
-                                    style="background: #f1f5f9; color: #64748b; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; border: 1px solid #e2e8f0;">
+                                    style="background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; border: 1px solid #e2e8f0;">
                                     {{ $coa->jenis_laporan == 'Neraca' ? 'NRC' : 'LR' }}
                                 </span>
                             </td>
 
-                            <td
-                                style="padding: 6px 15px; text-align: right; font-family: monospace; font-size: 0.85rem; color: #64748b;">
-                                {{ number_format($coa->saldo_awal_debit, 0, ',', '.') }}
+                            <td style="padding: 6px 10px; text-align: right; ; font-size: 0.85rem; color: #64748b;">
+                                {{ $coa->saldo_awal_debit != 0 ? number_format($coa->saldo_awal_debit, 2, ',', '.') : '-' }}
+                            </td>
+
+                            <td style="padding: 6px 10px; text-align: right; ; font-size: 0.85rem; color: #64748b;">
+                                {{ $coa->saldo_awal_kredit != 0 ? number_format($coa->saldo_awal_kredit, 2, ',', '.') : '-' }}
                             </td>
 
                             <td
-                                style="padding: 6px 15px; text-align: right; font-family: monospace; font-size: 0.85rem; color: #64748b;">
-                                {{ number_format($coa->saldo_awal_kredit, 0, ',', '.') }}
+                                style="padding: 6px 10px; text-align: right; font-size: 0.9rem; font-weight: 700; color: {{ $coa->saldo_akhir < 0 ? '#ef4444' : '#0f172a' }};">
+                                {{ (float) $coa->saldo_akhir != 0 ? number_format($coa->saldo_akhir, 2, ',', '.') : '-' }}
                             </td>
 
-                            <td
-                                style="padding: 6px 15px; text-align: right; font-family: monospace; font-size: 0.9rem; font-weight: 700; color: {{ $coa->saldo_akhir < 0 ? '#ef4444' : '#0f172a' }};">
-                                {{ number_format($coa->saldo_akhir, 0, ',', '.') }}
-                            </td>
-
-                            <td style="padding: 6px 15px; text-align: center; vertical-align: middle;">
+                            <td style="padding: 6px 10px; text-align: center; vertical-align: middle;">
                                 <div style="display: flex; gap: 4px; justify-content: center;">
                                     <a href="{{ route('coa.edit', $coa->id) }}" class="btn"
                                         style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;"

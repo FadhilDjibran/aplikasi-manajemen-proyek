@@ -19,7 +19,8 @@ class TransaksiLead extends Model
         'jenis_pembayaran',
         'nominal',
         'tgl_pembayaran',
-        'keterangan'
+        'keterangan',
+        'status_keuangan'
     ];
 
     public function lead()

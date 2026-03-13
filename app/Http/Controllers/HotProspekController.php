@@ -59,8 +59,9 @@ class HotProspekController extends Controller
             'nominal' => $request->nominal,
             'tgl_pembayaran' => $request->tgl_pembayaran,
             'keterangan' => $request->keterangan,
+            'status_keuangan' => 'pending',
         ]);
 
-        return redirect()->back()->with('success', 'Data transaksi berhasil disimpan.');
+        return redirect()->back()->with('success', 'Transaksi berhasil disimpan dan menunggu Approval.');
     }
 }

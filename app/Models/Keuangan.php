@@ -17,9 +17,10 @@ class Keuangan extends Model
         'mutasi_keluar' => 'decimal:2',
     ];
 
-    public function coa(): BelongsTo
+    public function coa()
     {
-        return $this->belongsTo(Coa::class, 'no_akun', 'no_akun');
+        return $this->belongsTo(Coa::class, 'no_akun', 'no_akun')
+                    ->where('project_id', session('active_project_id'));
     }
 
     public function creator(): BelongsTo

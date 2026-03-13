@@ -47,6 +47,9 @@ Route::middleware('auth')->group(function () {
 
         Route::middleware('role:Super_Admin,Admin,Marketing')->group(function () {
             Route::resource('coa', CoaController::class);
+            Route::get('/keuangan/pending-approvals', [KeuanganController::class, 'pendingApprovals'])->name('keuangan.pending');
+            Route::get('/keuangan/approve/{id}', [KeuanganController::class, 'approveForm'])->name('keuangan.approve_form');
+            Route::post('/keuangan/approve/{id}', [KeuanganController::class, 'processApprove'])->name('keuangan.process_approve');
             Route::resource('keuangan', KeuanganController::class);
 
             Route::prefix('leads')->name('leads.')->group(function () {

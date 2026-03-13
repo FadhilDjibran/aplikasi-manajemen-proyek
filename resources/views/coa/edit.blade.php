@@ -11,7 +11,14 @@
 
     <div class="card"
         style="padding: 2.5rem; max-width: 1000px; margin: 0 auto; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-
+        @if (session('success'))
+            <div
+                style="background-color: #f0fdf4; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #bbf7d0;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> {{ session('success') }}
+                </div>
+            </div>
+        @endif
         @if ($errors->any())
             <div
                 style="background-color: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #fecaca;">
@@ -131,7 +138,7 @@
                     </label>
                     <input type="text" class="form-control money-format" value="{{ $displayDebit }}"
                         placeholder="Isi saldo disini..."
-                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; font-family: monospace;">
+                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; ;">
                     <input type="hidden" name="saldo_awal_debit" value="{{ $debitVal }}">
                 </div>
 
@@ -142,13 +149,14 @@
                     </label>
                     <input type="text" class="form-control money-format" value="{{ $displayKredit }}"
                         placeholder="Isi saldo disini..."
-                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; font-family: monospace;">
+                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; ;">
                     <input type="hidden" name="saldo_awal_kredit" value="{{ $kreditVal }}">
                 </div>
 
             </div>
             <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
-                <i class="fas fa-info-circle"></i> Saldo Akhir akan dihitung otomatis oleh sistem berdasarkan Saldo Awal dan
+                <i class="fas fa-info-circle"></i> Saldo Akhir akan dihitung otomatis oleh sistem berdasarkan Saldo Awal
+                dan
                 Transaksi yang berjalan.
             </p>
 

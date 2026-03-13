@@ -104,8 +104,11 @@ class CoaController extends Controller
             'saldo_awal_kredit' => 'nullable|numeric',
         ]);
 
-        $debit = $request->saldo_awal_debit ?? 0;
-        $kredit = $request->saldo_awal_kredit ?? 0;
+        $validated['saldo_awal_debit'] = $request->saldo_awal_debit ?? 0;
+        $validated['saldo_awal_kredit'] = $request->saldo_awal_kredit ?? 0;
+
+        $debit = $validated['saldo_awal_debit'];
+        $kredit = $validated['saldo_awal_kredit'];
 
         if ($validated['posisi_normal'] === 'Debit') {
             $validated['saldo_akhir'] = $debit - $kredit;
