@@ -11,7 +11,9 @@ return new class extends Migration
         Schema::create('coa', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
-            $table->string('no_akun', 20)->unique();
+            $table->year('tahun')->default(date('Y'));
+            $table->string('no_akun', 20);
+            $table->unique(['project_id', 'tahun', 'no_akun']);
             $table->string('kategori_akun');
             $table->string('nama_akun');
             $table->enum('posisi_normal', ['Debit', 'Kredit']);

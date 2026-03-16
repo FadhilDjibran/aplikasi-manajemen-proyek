@@ -116,15 +116,15 @@
                         Mutasi Masuk (Rp)
                     </label>
                     <div style="display: flex; align-items: stretch; width: 100%;">
-                        <input type="text" class="form-control money-format"
+                        <input type="text" name="mutasi_masuk" class="form-control money-format"
                             value="{{ old('mutasi_masuk', number_format($item->mutasi_masuk, 0, ',', '.')) }}"
-                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; ; color: #059669; font-weight: 600; flex: 1;">
+                            placeholder="0"
+                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; color: #059669; font-weight: 600; flex: 1;">
                         <span
-                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; ; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
+                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
                             ,00
                         </span>
                     </div>
-                    <input type="text" name="mutasi_masuk" value="{{ old('mutasi_masuk', $item->mutasi_masuk) }}">
                 </div>
 
                 <div class="form-group">
@@ -133,15 +133,15 @@
                         Mutasi Keluar (Rp)
                     </label>
                     <div style="display: flex; align-items: stretch; width: 100%;">
-                        <input type="text" class="form-control money-format"
+                        <input type="text" name="mutasi_keluar" class="form-control money-format"
                             value="{{ old('mutasi_keluar', number_format($item->mutasi_keluar, 0, ',', '.')) }}"
-                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; ; color: #dc2626; font-weight: 600; flex: 1;">
+                            placeholder="0"
+                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; color: #dc2626; font-weight: 600; flex: 1;">
                         <span
-                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; ; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
+                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
                             ,00
                         </span>
                     </div>
-                    <input type="text" name="mutasi_keluar" value="{{ old('mutasi_keluar', $item->mutasi_keluar) }}">
                 </div>
 
                 <div class="form-group" style="grid-column: span 2;">

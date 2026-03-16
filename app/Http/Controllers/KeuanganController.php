@@ -14,11 +14,20 @@ class KeuanganController extends Controller
             return redirect()->route('projects.index')->with('error', 'Silakan pilih proyek aktif terlebih dahulu.');
         }
 
+        $tahun = $request->input('tahun', date('Y'));
+
         $pendingApprovalsCount = \App\Models\TransaksiLead::where('project_id', $projectId)
             ->where('status_keuangan', 'pending')
             ->count();
 
-        $query = Keuangan::with('coa')->where('project_id', $projectId);
+        $coa = \App\Models\Coa::where('project_id', $projectId)
+            ->where('tahun', $tahun)
+            ->orderBy('no_akun', 'asc')
+            ->get();
+
+        $query = \App\Models\Keuangan::with('coa')
+            ->where('project_id', $projectId)
+            ->whereYear('tanggal', $tahun);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -35,9 +44,13 @@ class KeuanganController extends Controller
             $query->where('input', $request->input_filter);
         }
 
+        if ($request->filled('coa_filter')) {
+            $query->where('no_akun', $request->coa_filter);
+        }
+
         $keuangan = $query->orderBy('tanggal', 'desc')->orderBy('id', 'desc')->paginate(50);
 
-        return view('keuangan.index', compact('keuangan', 'pendingApprovalsCount'));
+        return view('keuangan.index', compact('keuangan', 'pendingApprovalsCount', 'coa', 'tahun'));
     }
 
     public function create()
@@ -158,6 +171,14 @@ class KeuanganController extends Controller
     {
         $transaksi = Keuangan::findOrFail($id);
         $projectId = session('active_project_id');
+
+        $cleanMasuk = str_replace('.', '', $request->mutasi_masuk);
+        $cleanKeluar = str_replace('.', '', $request->mutasi_keluar);
+
+        $request->merge([
+            'mutasi_masuk'  => $cleanMasuk ?: 0,
+            'mutasi_keluar' => $cleanKeluar ?: 0,
+        ]);
 
         $validated = $request->validate([
             'tanggal'          => 'required|date',

@@ -43,68 +43,94 @@
                     <i class="fas fa-chart-line" style="width: 24px;"></i> Dashboard
                 </a>
 
-                @php
-                    $isCrmActive =
-                        request()->is('leads*') ||
-                        request()->is('create') ||
-                        request()->is('show') ||
-                        request()->is('followup*') ||
-                        request()->routeIs('hot_prospek.*');
-                @endphp
-                <div class="sidebar-dropdown">
-                    <a href="javascript:void(0)" class="sidebar-link dropdown-toggle {{ $isCrmActive ? 'active' : '' }}"
-                        onclick="toggleDropdown('crmMenu', this)">
-                        <i class="fas fa-handshake" style="width: 24px;"></i> CRM
-                        <i class="fas fa-chevron-down dropdown-icon"
-                            style="margin-left: auto; transition: transform 0.3s; {{ $isCrmActive ? 'transform: rotate(180deg);' : '' }}"></i>
-                    </a>
-                    <div id="crmMenu" class="dropdown-content"
-                        style="display: {{ $isCrmActive ? 'block' : 'none' }}; margin-bottom: 5px;">
-                        <a href="/leads"
-                            class="sidebar-link sub-link {{ request()->is('leads*') || request()->is('create') || request()->is('show') ? 'active' : '' }}"
-                            style="font-size: 0.9rem;">
-                            <i class="fas fa-database" style="width: 20px; font-size: 0.85rem;"></i> Database Leads
+                @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin', 'Marketing']))
+                    @php
+                        $isCrmActive =
+                            request()->is('leads*') ||
+                            request()->is('create') ||
+                            request()->is('show') ||
+                            request()->is('followup*') ||
+                            request()->routeIs('hot_prospek.*');
+                    @endphp
+                    <div class="sidebar-dropdown">
+                        <a href="javascript:void(0)"
+                            class="sidebar-link dropdown-toggle {{ $isCrmActive ? 'active' : '' }}"
+                            onclick="toggleDropdown('crmMenu', this)">
+                            <i class="fas fa-handshake" style="width: 24px;"></i> CRM
+                            <i class="fas fa-chevron-down dropdown-icon"
+                                style="margin-left: auto; transition: transform 0.3s; {{ $isCrmActive ? 'transform: rotate(180deg);' : '' }}"></i>
                         </a>
-                        <a href="/followup"
-                            class="sidebar-link sub-link {{ request()->is('followup*') ? 'active' : '' }}"
-                            style="font-size: 0.9rem;">
-                            <i class="fas fa-calendar-alt" style="width: 20px; font-size: 0.85rem;"></i> Jadwal Follow
-                            Up
-                        </a>
-                        <a href="{{ route('hot_prospek.index') }}"
-                            class="sidebar-link sub-link {{ request()->routeIs('hot_prospek.*') ? 'active' : '' }}"
-                            style="font-size: 0.9rem;">
-                            <i class="fas fa-fire" style="width: 20px; font-size: 0.85rem;"></i> Hot Prospek
-                        </a>
+                        <div id="crmMenu" class="dropdown-content"
+                            style="display: {{ $isCrmActive ? 'block' : 'none' }}; margin-bottom: 5px;">
+                            <a href="/leads"
+                                class="sidebar-link sub-link {{ request()->is('leads*') || request()->is('create') || request()->is('show') ? 'active' : '' }}"
+                                style="font-size: 0.9rem;">
+                                <i class="fas fa-database" style="width: 20px; font-size: 0.85rem;"></i> Database Leads
+                            </a>
+                            <a href="/followup"
+                                class="sidebar-link sub-link {{ request()->is('followup*') ? 'active' : '' }}"
+                                style="font-size: 0.9rem;">
+                                <i class="fas fa-calendar-alt" style="width: 20px; font-size: 0.85rem;"></i> Jadwal
+                                Follow Up
+                            </a>
+                            <a href="{{ route('hot_prospek.index') }}"
+                                class="sidebar-link sub-link {{ request()->routeIs('hot_prospek.*') ? 'active' : '' }}"
+                                style="font-size: 0.9rem;">
+                                <i class="fas fa-fire" style="width: 20px; font-size: 0.85rem;"></i> Hot Prospek
+                            </a>
+                        </div>
                     </div>
-                </div>
+                @endif
 
-                @php
-                    $isKeuanganActive = request()->routeIs('coa.*') || request()->is('keuangan*');
-                @endphp
-                <div class="sidebar-dropdown">
-                    <a href="javascript:void(0)"
-                        class="sidebar-link dropdown-toggle {{ $isKeuanganActive ? 'active' : '' }}"
-                        onclick="toggleDropdown('keuanganMenu', this)">
-                        <i class="fas fa-wallet" style="width: 24px;"></i> Keuangan
-                        <i class="fas fa-chevron-down dropdown-icon"
-                            style="margin-left: auto; transition: transform 0.3s; {{ $isKeuanganActive ? 'transform: rotate(180deg);' : '' }}"></i>
-                    </a>
-                    <div id="keuanganMenu" class="dropdown-content"
-                        style="display: {{ $isKeuanganActive ? 'block' : 'none' }}; margin-bottom: 5px;">
-                        <a href="{{ route('coa.index') }}"
-                            class="sidebar-link sub-link {{ request()->routeIs('coa.*') ? 'active' : '' }}"
-                            style="font-size: 0.9rem;">
-                            <i class="fas fa-book" style="width: 20px; font-size: 0.85rem;"></i> Chart of Accounts
+                @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin', 'Keuangan']))
+                    @php
+                        $isKeuanganActive =
+                            request()->routeIs('coa.*') ||
+                            request()->is('keuangan*') ||
+                            request()->routeIs('laporan.laba_rugi') ||
+                            request()->routeIs('laporan.neraca'); // <-- Pengecekan Neraca ditambahkan
+                    @endphp
+                    <div class="sidebar-dropdown">
+                        <a href="javascript:void(0)"
+                            class="sidebar-link dropdown-toggle {{ $isKeuanganActive ? 'active' : '' }}"
+                            onclick="toggleDropdown('keuanganMenu', this)">
+                            <i class="fas fa-wallet" style="width: 24px;"></i> Keuangan
+                            <i class="fas fa-chevron-down dropdown-icon"
+                                style="margin-left: auto; transition: transform 0.3s; {{ $isKeuanganActive ? 'transform: rotate(180deg);' : '' }}"></i>
                         </a>
-                        <a href="{{ route('keuangan.index') }}"
-                            class="sidebar-link sub-link {{ request()->is('keuangan*') ? 'active' : '' }}"
-                            style="font-size: 0.9rem;">
-                            <i class="fas fa-file-invoice-dollar" style="width: 20px; font-size: 0.85rem;"></i> Database
-                            Keuangan
-                        </a>
+                        <div id="keuanganMenu" class="dropdown-content"
+                            style="display: {{ $isKeuanganActive ? 'block' : 'none' }}; margin-bottom: 5px;">
+
+                            <a href="{{ route('coa.index') }}"
+                                class="sidebar-link sub-link {{ request()->routeIs('coa.*') ? 'active' : '' }}"
+                                style="font-size: 0.9rem;">
+                                <i class="fas fa-book" style="width: 20px; font-size: 0.85rem;"></i> Chart of Accounts
+                            </a>
+
+                            <a href="{{ route('keuangan.index') }}"
+                                class="sidebar-link sub-link {{ request()->is('keuangan*') ? 'active' : '' }}"
+                                style="font-size: 0.9rem;">
+                                <i class="fas fa-database" style="width: 20px; font-size: 0.85rem;"></i> Database
+                                Keuangan
+                            </a>
+
+                            <a href="{{ route('laporan.laba_rugi') }}"
+                                class="sidebar-link sub-link {{ request()->routeIs('laporan.laba_rugi') ? 'active' : '' }}"
+                                style="font-size: 0.9rem;">
+                                <i class="fas fa-chart-line" style="width: 20px; font-size: 0.85rem;"></i> Laporan Laba
+                                Rugi
+                            </a>
+
+                            <a href="{{ route('laporan.neraca') }}"
+                                class="sidebar-link sub-link {{ request()->routeIs('laporan.neraca') ? 'active' : '' }}"
+                                style="font-size: 0.9rem;">
+                                <i class="fas fa-balance-scale" style="width: 20px; font-size: 0.85rem;"></i> Laporan
+                                Neraca
+                            </a>
+
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 @php
                     $isSettingsActive =

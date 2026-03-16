@@ -48,11 +48,10 @@ function openEditModal(user, kpiValue) {
         placeholder.value = "";
         placeholder.text = "--Pilih Role--";
         placeholder.disabled = true;
-        placeholder.selected = true;
         roleSelect.appendChild(placeholder);
 
         if (currentUserRole === 'Super_Admin') {
-            const roles = ['Super_Admin', 'Admin', 'Marketing'];
+            const roles = ['Super_Admin', 'Admin', 'Marketing', 'Keuangan'];
             roles.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r;
@@ -66,10 +65,13 @@ function openEditModal(user, kpiValue) {
                 opt.text = 'Admin';
                 roleSelect.appendChild(opt);
             } else {
-                const opt = document.createElement('option');
-                opt.value = 'Marketing';
-                opt.text = 'Marketing';
-                roleSelect.appendChild(opt);
+                const roles = ['Marketing', 'Keuangan'];
+                roles.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r;
+                    opt.text = r;
+                    roleSelect.appendChild(opt);
+                });
             }
         }
 

@@ -75,6 +75,7 @@
                                     <option value="Admin">Admin</option>
                                 @endif
                                 <option value="Marketing" selected>Marketing</option>
+                                <option value="Keuangan">Keuangan</option>
                             </select>
                         </div>
 

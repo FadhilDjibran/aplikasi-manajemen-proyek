@@ -11,6 +11,7 @@ use App\Http\Controllers\TipeRumahController;
 use App\Http\Controllers\HotProspekController;
 use App\Http\Controllers\CoaController;
 use App\Http\Controllers\KeuanganController;
+use App\Http\Controllers\LaporanController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -42,16 +43,18 @@ Route::middleware('auth')->group(function () {
         });
 
     Route::middleware('project.active')->group(function () {
-
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-        Route::middleware('role:Super_Admin,Admin,Marketing')->group(function () {
+        Route::middleware('role:Super_Admin,Admin,Keuangan')->group(function () {
+            Route::get('/laporan/laba-rugi', [LaporanController::class, 'labaRugi'])->name('laporan.laba_rugi');
+            Route::get('/laporan/neraca', [LaporanController::class, 'neraca'])->name('laporan.neraca');
             Route::resource('coa', CoaController::class);
+            Route::post('/coa/rollover', [CoaController::class, 'rollover'])->name('coa.rollover');
             Route::get('/keuangan/pending-approvals', [KeuanganController::class, 'pendingApprovals'])->name('keuangan.pending');
             Route::get('/keuangan/approve/{id}', [KeuanganController::class, 'approveForm'])->name('keuangan.approve_form');
             Route::post('/keuangan/approve/{id}', [KeuanganController::class, 'processApprove'])->name('keuangan.process_approve');
             Route::resource('keuangan', KeuanganController::class);
-
+        });
+        Route::middleware('role:Super_Admin,Admin,Marketing')->group(function () {
             Route::prefix('leads')->name('leads.')->group(function () {
                 Route::get('/', [LeadController::class, 'index'])->name('index');
                 Route::get('/create', [LeadController::class, 'create'])->name('create');
@@ -63,7 +66,6 @@ Route::middleware('auth')->group(function () {
                 Route::get('/export', [LeadController::class, 'export'])->name('export');
                 Route::post('/trigger-update-status', [LeadController::class, 'triggerUpdateStatus'])->name('trigger_update');
             });
-
             Route::prefix('followup')->name('followup.')->group(function () {
                 Route::get('/', [FollowUpController::class, 'index'])->name('index');
                 Route::get('/{id}', [LeadController::class, 'show'])->name('followup_execute');
@@ -71,7 +73,6 @@ Route::middleware('auth')->group(function () {
                 Route::get('/{id}/edit', [FollowUpController::class, 'edit'])->name('edit');
                 Route::put('/{id}', [FollowUpController::class, 'update'])->name('update');
             });
-
             Route::get('/hot-prospek', [HotProspekController::class, 'index'])->name('hot_prospek.index');
             Route::post('/hot-prospek/transaksi', [HotProspekController::class, 'storeTransaksi'])->name('hot_prospek.store_transaksi');
         });
