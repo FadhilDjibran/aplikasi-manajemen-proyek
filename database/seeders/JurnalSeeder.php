@@ -6,18 +6,18 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class KeuanganSeeder extends Seeder
+class JurnalSeeder extends Seeder
 {
     public function run()
     {
-        $fileName  = 'KB2025.csv';
-        $inputType = 'Kas Besar';
+        $fileName  = 'jurnal2025.csv';
+        $inputType = 'Jurnal';
         $projectId = 1;
 
         $file = database_path('seeders/' . $fileName);
 
         if (!file_exists($file)) {
-            $this->command->error("File CSV tidak ditemukan di: {$file}");
+            $this->command->error("File CSV Jurnal tidak ditemukan di: {$file}");
             return;
         }
 
@@ -38,17 +38,26 @@ class KeuanganSeeder extends Seeder
         $missingCoas = [];
 
         while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-            $tanggalRaw = trim($data[6] ?? '');
+
+            $tanggalRaw = trim($data[5] ?? '');
 
             $tanggal = null;
-            $formatTersedia = ['d/m/Y', 'd-M-y', 'd F Y', 'j F Y'];
+            $formatTersedia = ['d/m/Y', 'd-M-y', 'd F Y', 'j F Y', 'Y-m-d'];
 
             foreach ($formatTersedia as $format) {
                 try {
-                    $tanggal = Carbon::parse($tanggalRaw)->format('Y-m-d');
+                    $tanggal = Carbon::createFromFormat($format, $tanggalRaw)->format('Y-m-d');
                     break;
                 } catch (\Exception $e) {
                     continue;
+                }
+            }
+
+            if (!$tanggal) {
+                try {
+                    $tanggal = Carbon::parse($tanggalRaw)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $tanggal = null;
                 }
             }
 
@@ -56,7 +65,7 @@ class KeuanganSeeder extends Seeder
                 continue;
             }
 
-            $noAkun = trim($data[7] ?? '');
+            $noAkun = trim($data[6] ?? '');
 
             if (empty($noAkun)) {
                 $skippedKosong++;
@@ -71,12 +80,12 @@ class KeuanganSeeder extends Seeder
                 continue;
             }
 
-            $kodeBukti       = trim($data[10] ?? '');
-            $jenisPenggunaan = trim($data[11] ?? '');
-            $keterangan      = trim($data[12] ?? '');
+            $kodeBukti       = trim($data[9] ?? '');
+            $jenisPenggunaan = trim($data[10] ?? '');
+            $keterangan      = trim($data[11] ?? '');
 
-            $mutasiMasuk  = $this->cleanNumber($data[13] ?? '0');
-            $mutasiKeluar = $this->cleanNumber($data[14] ?? '0');
+            $mutasiMasuk  = $this->cleanNumber($data[12] ?? '0');
+            $mutasiKeluar = $this->cleanNumber($data[13] ?? '0');
 
             DB::table('keuangan')->insert([
                 'project_id'       => $projectId,
@@ -97,13 +106,13 @@ class KeuanganSeeder extends Seeder
 
         fclose($handle);
 
-        $this->command->info("Selesai! Berhasil mengimpor {$count} transaksi {$inputType}.");
+        $this->command->info("Selesai! Berhasil mengimpor {$count} transaksi {$inputType} dari file {$fileName}.");
 
         if ($skippedKosong > 0 || $skippedTidakValid > 0) {
             $this->command->warn("Rincian baris yang dilewati:");
 
             if ($skippedKosong > 0) {
-                $this->command->line("- <fg=cyan>{$skippedKosong} baris dilewati karena kolom No Akun (CoA) kosong / blank rows.</>");
+                $this->command->line("- <fg=cyan>{$skippedKosong} baris dilewati karena kolom No Akun (CoA) kosong.</>");
             }
 
             if ($skippedTidakValid > 0) {
@@ -112,7 +121,6 @@ class KeuanganSeeder extends Seeder
 
             if (!empty($missingCoas)) {
                 $this->command->error("\nDaftar No Akun (CoA) yang perlu Anda tambahkan ke Master Data CoA:");
-
                 foreach ($missingCoas as $tahun => $coas) {
                     $uniqueCoas = array_unique($coas);
                     $this->command->line("<fg=yellow>Tahun {$tahun}: " . implode(', ', $uniqueCoas) . "</>");
@@ -124,7 +132,7 @@ class KeuanganSeeder extends Seeder
     private function cleanNumber($value)
     {
         $value = preg_replace('/\s+/', '', $value);
-        if ($value === '' || $value === '-' || $value === 'MASUK' || $value === 'KELUAR') return 0;
+        if ($value === '' || $value === '-' || $value === 'MASUK' || $value === 'KELUAR' || $value === 'DEBET' || $value === 'KREDIT') return 0;
 
         $value = str_replace('.', '', $value);
         $value = str_replace(',', '.', $value);

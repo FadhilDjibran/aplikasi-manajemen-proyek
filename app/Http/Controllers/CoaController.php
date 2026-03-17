@@ -108,8 +108,8 @@ class CoaController extends Controller
         $tahun = $coa->tahun;
 
         $request->merge([
-            'saldo_awal_debit' => str_replace('.', '', $request->saldo_awal_debit ?? 0),
-            'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit ?? 0),
+            'saldo_awal_debit' => str_replace('.', '', $request->saldo_awal_debit ?: 0),
+            'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit ?: 0),
         ]);
 
         $validated = $request->validate([
@@ -132,11 +132,7 @@ class CoaController extends Controller
         $debit = $validated['saldo_awal_debit'] ?? 0;
         $kredit = $validated['saldo_awal_kredit'] ?? 0;
 
-        if ($validated['posisi_normal'] === 'Debit') {
-            $validated['saldo_akhir'] = $debit - $kredit;
-        } else {
-            $validated['saldo_akhir'] = $kredit - $debit;
-        }
+        $validated['saldo_akhir'] = $debit - $kredit;
 
         $coa->update($validated);
 

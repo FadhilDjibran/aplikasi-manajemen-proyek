@@ -206,37 +206,24 @@ class LaporanController extends Controller
             ],
         ];
 
-        $processData = function ($transaksiData, $coaData) use ($template) {
+       $processData = function ($transaksiData, $coaData) use ($template) {
             $laporan = [];
+
             foreach ($template as $groupKey => $akunList) {
                 foreach ($akunList as $noAkun => $detail) {
-                    $laporan[$groupKey][$noAkun] = ['nama' => $detail['nama'], 'saldo' => 0, 'is_contra' => $detail['is_contra'] ?? false];
+                    $laporan[$groupKey][$noAkun] = ['nama' => $detail['nama'], 'saldo' => 0];
+                }
+            }
+
+            $totalLabaRugiBerjalan = 0;
+            foreach ($transaksiData as $trx) {
+                if ($trx->coa && $trx->coa->jenis_laporan === 'Laba Rugi') {
+                    $totalLabaRugiBerjalan += ($trx->mutasi_keluar - $trx->mutasi_masuk);
                 }
             }
 
             foreach ($coaData as $akun) {
                 $noAkun = $akun->no_akun;
-                $group = null;
-                $normalBalance = 'debit';
-
-                if (array_key_exists($noAkun, $laporan['aset_lancar'])) { $group = 'aset_lancar'; }
-                elseif (array_key_exists($noAkun, $laporan['aset_tidak_lancar'])) { $group = 'aset_tidak_lancar'; }
-                elseif (array_key_exists($noAkun, $laporan['hutang'])) { $group = 'hutang'; $normalBalance = 'kredit'; }
-                elseif (array_key_exists($noAkun, $laporan['ekuitas'])) { $group = 'ekuitas'; $normalBalance = 'kredit'; }
-
-                if (!$group) continue;
-
-                $saldo = (float) $akun->saldo_akhir;
-
-                if ($normalBalance === 'kredit') { $saldo = $saldo * -1; }
-
-                if ($laporan[$group][$noAkun]['is_contra']) { $saldo = $saldo * -1; }
-
-                $laporan[$group][$noAkun]['saldo'] += $saldo;
-            }
-
-            foreach ($transaksiData as $trx) {
-                $noAkun = $trx->no_akun;
                 $group = null;
 
                 if (array_key_exists($noAkun, $laporan['aset_lancar'])) { $group = 'aset_lancar'; }
@@ -246,13 +233,17 @@ class LaporanController extends Controller
 
                 if (!$group) continue;
 
-                $mutasiNet = $trx->mutasi_masuk - $trx->mutasi_keluar;
+                $saldo = (float) $akun->saldo_akhir;
 
-                if ($laporan[$group][$noAkun]['is_contra']) {
-                    $mutasiNet = $mutasiNet * -1;
+                if ($noAkun == '3007' && $saldo == 0) {
+                    $saldo = $totalLabaRugiBerjalan * -1;
                 }
 
-                $laporan[$group][$noAkun]['saldo'] += $mutasiNet;
+                if ($group === 'hutang' || $group === 'ekuitas') {
+                    $saldo = $saldo * -1;
+                }
+
+                $laporan[$group][$noAkun]['saldo'] = $saldo;
             }
 
             $totalAsetLancar = array_sum(array_column($laporan['aset_lancar'], 'saldo'));
@@ -273,7 +264,6 @@ class LaporanController extends Controller
                 'totalPasiva' => $totalPasiva
             ];
         };
-
         $neracaSekarang = $processData($transaksiSekarang, $coaSekarang);
         $neracaLalu = $processData($transaksiLalu, $coaLalu);
 

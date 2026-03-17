@@ -168,14 +168,13 @@
                 <thead
                     style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.75rem;">
                     <tr>
-                        <th style="padding: 12px 15px; width: 100px;">Tanggal</th>
+                        <th style="padding: 12px 15px; max-width: 80px;">Tanggal</th>
                         <th style="padding: 12px 15px; width: 100px; text-align: center;">Tipe Input</th>
-                        <th style="padding: 12px 15px; min-width: 160px;">Akun (CoA)</th>
+                        <th style="padding: 12px 15px; min-width: 150px;">Akun (CoA)</th>
                         <th style="padding: 12px 15px; min-width: 200px;">Keterangan & Jenis</th>
                         <th style="padding: 12px 15px; text-align: center; width: 120px;">Mutasi Masuk</th>
                         <th style="padding: 12px 15px; text-align: center; width: 120px;">Mutasi Keluar</th>
-                        <th style="padding: 12px 15px; text-align: center; width: 60px;">Bukti</th>
-                        <th style="padding: 12px 15px; text-align: center; width: 90px;">Aksi</th>
+                        <th style="padding: 12px 5px; text-align: center; width: 120px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -231,23 +230,23 @@
                                 {{ (float) $item->mutasi_keluar != 0 ? number_format($item->mutasi_keluar, 2, ',', '.') : '-' }}
                             </td>
 
-                            <td style="padding: 8px 15px; text-align: center;">
-                                @if ($item->bukti)
-                                    <a href="{{ asset('storage/' . $item->bukti) }}" target="_blank" class="btn"
-                                        style="color: #2563eb; background: #eff6ff; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #dbeafe; border-radius: 4px;"
-                                        title="Lihat Bukti">
-                                        <i class="fas fa-paperclip"></i>
-                                    </a>
-                                @else
-                                    <span style="color: #cbd5e1; font-size: 0.8rem;">-</span>
-                                @endif
-                            </td>
-
                             <td style="padding: 8px 15px; text-align: center; vertical-align: middle;">
-                                <div style="display: flex; gap: 4px; justify-content: center;">
+                                <div style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+
+                                    @if ($item->bukti)
+                                        <a href="{{ asset('storage/' . $item->bukti) }}" target="_blank" class="btn"
+                                            style="color: #2563eb; background: #eff6ff; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #dbeafe; border-radius: 4px;"
+                                            title="Lihat Bukti">
+                                            <i class="fas fa-paperclip"></i>
+                                        </a>
+                                    @else
+                                        <span style="color: #cbd5e1; font-size: 0.8rem; padding: 4px 8px;">-</span>
+                                    @endif
+
                                     <a href="{{ route('keuangan.edit', $item->id) }}" class="btn"
                                         style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;"
                                         title="Edit"><i class="fas fa-edit"></i></a>
+
                                     <form action="{{ route('keuangan.destroy', $item->id) }}" method="POST"
                                         style="margin: 0; display: inline-block;">
                                         @csrf @method('DELETE')
@@ -257,6 +256,7 @@
                                             onclick="return confirm('Yakin ingin menghapus transaksi ini?')"><i
                                                 class="fas fa-trash-alt"></i></button>
                                     </form>
+
                                 </div>
                             </td>
                         </tr>

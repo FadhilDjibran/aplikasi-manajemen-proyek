@@ -37,16 +37,19 @@
                         }
                         return number_format($angka, 0, ',', '.');
                     }
+
                     function formatPersen($angka, $total)
                     {
                         if ($total == 0 || $angka == 0) {
-                            return '0%';
+                            return '0,00%';
                         }
-                        $persen = round(($angka / $total) * 100);
+
+                        $persen = ($angka / $total) * 100;
+
                         if ($persen < 0) {
-                            return '(' . abs($persen) . '%)';
+                            return '-' . number_format(abs($persen), 2, ',', '.') . '%';
                         }
-                        return $persen . '%';
+                        return number_format($persen, 2, ',', '.') . '%';
                     }
                 @endphp
 
@@ -79,9 +82,11 @@
                             <td style="width: 60px; text-align: center; padding: 4px;">{{ $no }}</td>
                             <td style="padding: 4px;">{{ $akun['nama'] }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoSkrg) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoSkrg, $neracaSekarang['totalAset']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoLalu) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoLalu, $neracaLalu['totalAset']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($selisih) }}</td>
                         </tr>
                     @endforeach
@@ -113,9 +118,11 @@
                             <td style="text-align: center; padding: 4px;">{{ $no }}</td>
                             <td style="padding: 4px;">{{ $akun['nama'] }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoSkrg) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoSkrg, $neracaSekarang['totalAset']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoLalu) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoLalu, $neracaLalu['totalAset']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($selisih) }}</td>
                         </tr>
                     @endforeach
@@ -135,12 +142,17 @@
                     <tr
                         style="background-color: #ffff00; font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000;">
                         <td colspan="2" style="text-align: center; padding: 12px 8px; font-size: 1rem;">TOTAL ASET</td>
+
                         <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
                             {{ formatRp($neracaSekarang['totalAset']) }}</td>
-                        <td style="text-align: right; padding: 12px 8px;"></td>
+                        <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
+                            {{ formatPersen($neracaSekarang['totalAset'], $neracaSekarang['totalAset']) }}</td>
+
                         <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
                             {{ formatRp($neracaLalu['totalAset']) }}</td>
-                        <td style="text-align: right; padding: 12px 8px;"></td>
+                        <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
+                            {{ formatPersen($neracaLalu['totalAset'], $neracaLalu['totalAset']) }}</td>
+
                         <td style="text-align: right; padding: 12px 8px;"></td>
                     </tr>
 
@@ -159,9 +171,11 @@
                             <td style="text-align: center; padding: 4px;">{{ $no }}</td>
                             <td style="padding: 4px;">{{ $akun['nama'] }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoSkrg) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoSkrg, $neracaSekarang['totalPasiva']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoLalu) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoLalu, $neracaLalu['totalPasiva']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($selisih) }}</td>
                         </tr>
                     @endforeach
@@ -193,9 +207,11 @@
                             <td style="text-align: center; padding: 4px;">{{ $no }}</td>
                             <td style="padding: 4px;">{{ $akun['nama'] }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoSkrg) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoSkrg, $neracaSekarang['totalPasiva']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($saldoLalu) }}</td>
-                            <td style="text-align: right; padding: 4px;"></td>
+                            <td style="text-align: right; padding: 4px; color: #64748b;">
+                                {{ formatPersen($saldoLalu, $neracaLalu['totalPasiva']) }}</td>
                             <td style="text-align: right; padding: 4px;">{{ formatRp($selisih) }}</td>
                         </tr>
                     @endforeach
@@ -216,12 +232,17 @@
                         style="background-color: #ffff00; font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000;">
                         <td colspan="2" style="text-align: center; padding: 12px 8px; font-size: 1rem;">TOTAL HUTANG
                             DAN EKUITAS</td>
+
                         <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
                             {{ formatRp($neracaSekarang['totalPasiva']) }}</td>
-                        <td style="text-align: right; padding: 12px 8px;"></td>
+                        <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
+                            {{ formatPersen($neracaSekarang['totalPasiva'], $neracaSekarang['totalPasiva']) }}</td>
+
                         <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
                             {{ formatRp($neracaLalu['totalPasiva']) }}</td>
-                        <td style="text-align: right; padding: 12px 8px;"></td>
+                        <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
+                            {{ formatPersen($neracaLalu['totalPasiva'], $neracaLalu['totalPasiva']) }}</td>
+
                         <td style="text-align: right; padding: 12px 8px;"></td>
                     </tr>
 

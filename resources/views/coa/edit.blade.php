@@ -122,8 +122,9 @@
             </h4>
 
             @php
-                $debitVal = old('saldo_awal_debit', $coa->saldo_awal_debit);
-                $kreditVal = old('saldo_awal_kredit', $coa->saldo_awal_kredit);
+                $debitVal = (float) old('saldo_awal_debit', $coa->saldo_awal_debit);
+                $kreditVal = (float) old('saldo_awal_kredit', $coa->saldo_awal_kredit);
+
                 $displayDebit = $debitVal != 0 ? number_format($debitVal, 0, '', '') : '';
                 $displayKredit = $kreditVal != 0 ? number_format($kreditVal, 0, '', '') : '';
             @endphp
@@ -131,33 +132,48 @@
             <div
                 style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Saldo Awal Debit (Rp)
                     </label>
-                    <input type="text" class="form-control money-format" value="{{ $displayDebit }}"
-                        placeholder="Isi saldo disini..."
-                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; ;">
-                    <input type="hidden" name="saldo_awal_debit" value="{{ $debitVal }}">
+                    <div style="display: flex; align-items: stretch; width: 100%;">
+                        <input type="text" class="form-control money-format" value="{{ $displayDebit }}" placeholder="0"
+                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; color: #059669; font-weight: 600; flex: 1;">
+
+                        <span
+                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
+                            ,00
+                        </span>
+
+                        <input type="hidden" name="saldo_awal_debit" value="{{ $debitVal }}">
+                    </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Saldo Awal Kredit (Rp)
                     </label>
-                    <input type="text" class="form-control money-format" value="{{ $displayKredit }}"
-                        placeholder="Isi saldo disini..."
-                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; ;">
-                    <input type="hidden" name="saldo_awal_kredit" value="{{ $kreditVal }}">
+                    <div style="display: flex; align-items: stretch; width: 100%;">
+                        <input type="text" class="form-control money-format" value="{{ $displayKredit }}"
+                            placeholder="0"
+                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; color: #dc2626; font-weight: 600; flex: 1;">
+
+                        <span
+                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
+                            ,00
+                        </span>
+
+                        <input type="hidden" name="saldo_awal_kredit" value="{{ $kreditVal }}">
+                    </div>
                 </div>
 
             </div>
+
             <p style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
                 <i class="fas fa-info-circle"></i> Saldo Akhir akan dihitung otomatis oleh sistem berdasarkan Saldo Awal
-                dan
-                Transaksi yang berjalan.
+                dan Transaksi yang berjalan.
             </p>
 
         </form>
