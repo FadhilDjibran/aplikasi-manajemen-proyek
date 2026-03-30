@@ -1387,3 +1387,11 @@ a:hover {
     border-radius: 0 !important;
     padding-left: 2.5rem !important;
 }
+
+.ts-wrapper {
+    z-index: 10 !important;
+}
+
+.ts-dropdown {
+    z-index: 9999 !important;
+}

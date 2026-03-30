@@ -10,15 +10,26 @@ class KeuanganSeeder extends Seeder
 {
     public function run()
     {
-        $fileName  = 'KB2025.csv';
-        $inputType = 'Kas Besar';
+        $fileName  = 'bank2025.csv';
+        $inputType = 'Bank';
         $projectId = 1;
+        $tahunFile = 2025;
 
         $file = database_path('seeders/' . $fileName);
 
         if (!file_exists($file)) {
             $this->command->error("File CSV tidak ditemukan di: {$file}");
             return;
+        }
+
+        $deleted = DB::table('keuangan')
+            ->where('project_id', $projectId)
+            ->where('input', $inputType)
+            ->whereYear('tanggal', $tahunFile)
+            ->delete();
+
+        if ($deleted > 0) {
+            $this->command->info("Membersihkan {$deleted} data {$inputType} lama tahun {$tahunFile} sebelum import ulang...");
         }
 
         $validCoas = DB::table('coa')
@@ -32,24 +43,29 @@ class KeuanganSeeder extends Seeder
 
         $handle = fopen($file, "r");
 
-        $count = 0;
+        $countInsert = 0;
         $skippedKosong = 0;
         $skippedTidakValid = 0;
         $missingCoas = [];
 
         while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
+
             $tanggalRaw = trim($data[6] ?? '');
 
             $tanggal = null;
-            $formatTersedia = ['d/m/Y', 'd-M-y', 'd F Y', 'j F Y'];
+            $formatTersedia = ['d/m/Y', 'd-M-y', 'd F Y', 'j F Y', 'Y-m-d'];
 
             foreach ($formatTersedia as $format) {
                 try {
-                    $tanggal = Carbon::parse($tanggalRaw)->format('Y-m-d');
+                    $tanggal = Carbon::createFromFormat($format, $tanggalRaw)->format('Y-m-d');
                     break;
                 } catch (\Exception $e) {
                     continue;
                 }
+            }
+            if (!$tanggal) {
+                try { $tanggal = Carbon::parse($tanggalRaw)->format('Y-m-d'); }
+                catch (\Exception $e) { $tanggal = null; }
             }
 
             if (!$tanggal || $tanggalRaw == 'TANGGAL' || $tanggalRaw == 'A') {
@@ -92,26 +108,26 @@ class KeuanganSeeder extends Seeder
                 'updated_at'       => now(),
             ]);
 
-            $count++;
+            $countInsert++;
         }
 
         fclose($handle);
 
-        $this->command->info("Selesai! Berhasil mengimpor {$count} transaksi {$inputType}.");
+        $this->command->info("Selesai! Berhasil mengimpor murni {$countInsert} transaksi {$inputType}.");
 
         if ($skippedKosong > 0 || $skippedTidakValid > 0) {
             $this->command->warn("Rincian baris yang dilewati:");
 
             if ($skippedKosong > 0) {
-                $this->command->line("- <fg=cyan>{$skippedKosong} baris dilewati karena kolom No Akun (CoA) kosong / blank rows.</>");
+                $this->command->line("- <fg=cyan>{$skippedKosong} baris dilewati karena kolom No Akun kosong.</>");
             }
 
             if ($skippedTidakValid > 0) {
-                $this->command->line("- <fg=red>{$skippedTidakValid} baris dilewati karena No Akun tidak terdaftar di Database.</>");
+                $this->command->line("- <fg=red>{$skippedTidakValid} baris dilewati karena No Akun tidak terdaftar.</>");
             }
 
             if (!empty($missingCoas)) {
-                $this->command->error("\nDaftar No Akun (CoA) yang perlu Anda tambahkan ke Master Data CoA:");
+                $this->command->error("\nDaftar No Akun (CoA) yang perlu ditambahkan:");
 
                 foreach ($missingCoas as $tahun => $coas) {
                     $uniqueCoas = array_unique($coas);

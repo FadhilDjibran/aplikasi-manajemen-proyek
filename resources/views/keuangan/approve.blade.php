@@ -76,15 +76,15 @@
                         <option value="">-- Cari atau Pilih Akun --</option>
 
                         @php
-                            $groupedCoa = $coa->groupBy('kategori_akun');
+                            $groupedCoa = isset($coa) ? $coa->unique('no_akun')->groupBy('kategori_akun') : collect();
                         @endphp
 
                         @foreach ($groupedCoa as $kategori => $akunList)
                             <optgroup label="{{ $kategori }}">
-                                @foreach ($akunList as $item)
-                                    <option value="{{ $item->no_akun }}"
-                                        {{ old('no_akun', '1308') == $item->no_akun ? 'selected' : '' }}>
-                                        {{ $item->no_akun }} - {{ $item->nama_akun }}
+                                @foreach ($akunList as $coaItem)
+                                    <option value="{{ $coaItem->no_akun }}"
+                                        {{ old('no_akun', '1308') == $coaItem->no_akun ? 'selected' : '' }}>
+                                        {{ $coaItem->no_akun }} - {{ $coaItem->nama_akun }}
                                     </option>
                                 @endforeach
                             </optgroup>

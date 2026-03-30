@@ -13,123 +13,176 @@ class LaporanController extends Controller
             return redirect()->route('projects.index')->with('error', 'Pilih proyek terlebih dahulu.');
         }
 
-        $bulan = $request->input('bulan', date('m'));
+        $bulan = $request->input('bulan', 'all');
         $tahun = $request->input('tahun', date('Y'));
 
-        $query = \App\Models\Keuangan::where('project_id', $projectId)
-            ->whereYear('tanggal', $tahun);
-
-        if ($bulan !== 'all') {
-            $query->whereMonth('tanggal', $bulan);
+        if ($bulan === 'all') {
+            $prevBulan = 'all';
+            $prevTahun = $tahun - 1;
+        } else {
+            $waktuLalu = strtotime('-1 month', strtotime($tahun . '-' . $bulan . '-01'));
+            $prevBulan = date('m', $waktuLalu);
+            $prevTahun = date('Y', $waktuLalu);
         }
 
-        $transaksi = $query->get();
+        $hitungPeriode = function ($b, $t) use ($projectId) {
+            $lap = [
+                'pendapatan' => [
+                    '4001' => ['nama' => 'PENJUALAN', 'saldo' => 0],
+                    '4002' => ['nama' => 'POTONGAN PENJUALAN', 'saldo' => 0],
+                ],
+                'beban_pokok' => [
+                    '5001' => ['nama' => 'BY MATERIAL', 'saldo' => 0],
+                    '5002' => ['nama' => 'BY TENAGA KERJA', 'saldo' => 0],
+                    '5003' => ['nama' => 'BY OVERHEAD', 'saldo' => 0],
+                    '5004' => ['nama' => 'BY PERENCANAAN DAN IZIN', 'saldo' => 0],
+                    '5005' => ['nama' => 'BY PENJUALAN LAIN-LAIN', 'saldo' => 0],
+                    '5006' => ['nama' => 'HARGA POKOK TANAH', 'saldo' => 0],
+                    '5007' => ['nama' => 'BY FASUM', 'saldo' => 0],
+                ],
+                'beban_pemasaran' => [
+                    '5201' => ['nama' => 'KOMISI PENJUALAN', 'saldo' => 0],
+                    '5202' => ['nama' => 'BY MARKETING', 'saldo' => 0],
+                    '5203' => ['nama' => 'BY ENTERTAINTMENT', 'saldo' => 0],
+                ],
+                'biaya_umum' => [
+                    '5101' => ['nama' => 'GAJI', 'saldo' => 0],
+                    '5102' => ['nama' => 'BONUS, LEMBUR', 'saldo' => 0],
+                    '5104' => ['nama' => 'TUNJANGAN', 'saldo' => 0],
+                    '5106' => ['nama' => 'MAKAN DAN MINUM', 'saldo' => 0],
+                    '5107' => ['nama' => 'TELEPON, PULSA, WIFI, LISTRIK DAN AIR', 'saldo' => 0],
+                    '5108' => ['nama' => 'BBM, TOL, TRANSPORT', 'saldo' => 0],
+                    '5109' => ['nama' => 'PARKIR', 'saldo' => 0],
+                    '5111' => ['nama' => 'PEMELIHARAAN ASET', 'saldo' => 0],
+                    '5113' => ['nama' => 'ALAT TULIS KANTOR', 'saldo' => 0],
+                    '5114' => ['nama' => 'KEPERLUAN KANTOR LAIN', 'saldo' => 0],
+                    '5115' => ['nama' => 'PERJALANAN DINAS', 'saldo' => 0],
+                    '5116' => ['nama' => 'BEBAN PAJAK', 'saldo' => 0],
+                    '5117' => ['nama' => 'SUMBANGAN DAN IURAN', 'saldo' => 0],
+                    '5119' => ['nama' => 'PELATIHAN PEGAWAI', 'saldo' => 0],
+                    '5120' => ['nama' => 'BEBAN PENYUSUTAN', 'saldo' => 0],
+                ],
+                'pendapatan_biaya_luar' => [
+                    '6001' => ['nama' => 'PENDAPATAN LAIN-LAIN', 'saldo' => 0],
+                    '6002' => ['nama' => 'JASA GIRO', 'saldo' => 0],
+                    '6003' => ['nama' => 'PAJAK JASA GIRO', 'saldo' => 0],
+                    '6004' => ['nama' => 'BY TRANSFER', 'saldo' => 0],
+                    '6005' => ['nama' => 'ADMIN BANK', 'saldo' => 0],
+                    '6199' => ['nama' => 'BIAYA LAIN-LAIN', 'saldo' => 0],
+                ],
+                'penyusutan_pajak' => [
+                    '7100' => ['nama' => 'PAJAK PENGHASILAN', 'saldo' => 0],
+                ],
+            ];
 
-        $laporan = [
-            'pendapatan' => [
-                '4001' => ['nama' => 'PENJUALAN', 'saldo' => 0],
-                '5000' => ['nama' => 'POTONGAN PENJUALAN', 'saldo' => 0],
-            ],
-            'beban_pokok' => [
-                '5001' => ['nama' => 'HARGA POKOK TANAH', 'saldo' => 0],
-                '5002' => ['nama' => 'HARGA POKOK BANGUNAN', 'saldo' => 0],
-                '5003' => ['nama' => 'BY RETENSI BANGUNAN', 'saldo' => 0],
-                '5004' => ['nama' => 'BY PENJUALAN LAIN-LAIN', 'saldo' => 0],
-            ],
-            'beban_pemasaran' => [
-                '5100' => ['nama' => 'KOMISI PENJUALAN', 'saldo' => 0],
-                '5101' => ['nama' => 'BY MARKETING', 'saldo' => 0],
-                '5102' => ['nama' => 'BY ENTERTAINTMENT', 'saldo' => 0],
-            ],
-            'biaya_umum' => [
-                '5201' => ['nama' => 'GAJI', 'saldo' => 0],
-                '5202' => ['nama' => 'BONUS DAN TUNJANGAN', 'saldo' => 0],
-                '5203' => ['nama' => 'BPJS', 'saldo' => 0],
-                '5204' => ['nama' => 'PELATIHAN DAN SERTIFIKASI', 'saldo' => 0],
-                '5205' => ['nama' => 'BY PENGIRIMAN DOKUMEN', 'saldo' => 0],
-                '5206' => ['nama' => 'MAKAN DAN MINUM', 'saldo' => 0],
-                '5207' => ['nama' => 'BEBAN UTILITAS', 'saldo' => 0],
-                '5208' => ['nama' => 'BEBAN TRANSPORT', 'saldo' => 0],
-                '5209' => ['nama' => 'BEBAN SEWA', 'saldo' => 0],
-                '5210' => ['nama' => 'BY INSTALASI', 'saldo' => 0],
-                '5211' => ['nama' => 'PARKIR', 'saldo' => 0],
-                '5212' => ['nama' => 'ALAT TULIS KANTOR', 'saldo' => 0],
-                '5213' => ['nama' => 'KEPERLUAN KANTOR LAIN', 'saldo' => 0],
-                '5214' => ['nama' => 'PERJALANAN DINAS', 'saldo' => 0],
-                '5215' => ['nama' => 'BEBAN PAJAK', 'saldo' => 0],
-                '5216' => ['nama' => 'SUMBANGAN DAN IURAN', 'saldo' => 0],
-                '5217' => ['nama' => 'BY TENAGA AHLI', 'saldo' => 0],
-                '5218' => ['nama' => 'PEMELIHARAAN ASET', 'saldo' => 0],
-                '5219' => ['nama' => 'ADMIN DAN TRANSFER', 'saldo' => 0],
-            ],
-            'pendapatan_biaya_luar' => [
-                '4003' => ['nama' => 'PENDAPATAN LAIN-LAIN', 'saldo' => 0],
-                '4004' => ['nama' => 'PENDAPATAN IURAN LINGKUNGAN', 'saldo' => 0],
-                '4005' => ['nama' => 'JASA GIRO', 'saldo' => 0],
-                '6001' => ['nama' => 'PAJAK GIRO', 'saldo' => 0],
-                '6002' => ['nama' => 'PEMELIHARAAN FASUM', 'saldo' => 0],
-                '6003' => ['nama' => 'BIAYA LAIN-LAIN', 'saldo' => 0],
-            ],
-            'penyusutan_pajak' => [
-                '5301' => ['nama' => 'BEBAN PENYUSUTAN', 'saldo' => 0],
-                '5302' => ['nama' => 'BEBAN AMORTISASI', 'saldo' => 0],
-                '7000' => ['nama' => 'PAJAK PENGHASILAN', 'saldo' => 0],
-            ],
-        ];
+            $query = \App\Models\Keuangan::where('project_id', $projectId)->whereYear('tanggal', $t);
+            if ($b !== 'all') {
+                $query->whereMonth('tanggal', $b);
+            }
+            $transaksi = $query->get();
 
-        foreach ($transaksi as $trx) {
-            $noAkun = $trx->no_akun;
-            $group = null;
-            $normalBalance = 'debit';
+            foreach ($transaksi as $trx) {
+                $noAkun = $trx->no_akun;
+                $group = null;
+                $normalBalance = 'debit';
 
-            if (array_key_exists($noAkun, $laporan['pendapatan'])) {
-                $group = 'pendapatan';
-                $normalBalance = 'kredit';
-            } elseif (array_key_exists($noAkun, $laporan['beban_pokok'])) {
-                $group = 'beban_pokok';
-            } elseif (array_key_exists($noAkun, $laporan['beban_pemasaran'])) {
-                $group = 'beban_pemasaran';
-            } elseif (array_key_exists($noAkun, $laporan['biaya_umum'])) {
-                $group = 'biaya_umum';
-            } elseif (array_key_exists($noAkun, $laporan['pendapatan_biaya_luar'])) {
-                $group = 'pendapatan_biaya_luar';
-                $normalBalance = str_starts_with($noAkun, '4') ? 'kredit' : 'debit';
-            } elseif (array_key_exists($noAkun, $laporan['penyusutan_pajak'])) {
-                $group = 'penyusutan_pajak';
+                if (array_key_exists($noAkun, $lap['pendapatan'])) {
+                    $group = 'pendapatan'; $normalBalance = 'kredit';
+                } elseif (array_key_exists($noAkun, $lap['beban_pokok'])) {
+                    $group = 'beban_pokok';
+                } elseif (array_key_exists($noAkun, $lap['beban_pemasaran'])) {
+                    $group = 'beban_pemasaran';
+                } elseif (array_key_exists($noAkun, $lap['biaya_umum'])) {
+                    $group = 'biaya_umum';
+                } elseif (array_key_exists($noAkun, $lap['pendapatan_biaya_luar'])) {
+                    $group = 'pendapatan_biaya_luar'; $normalBalance = 'kredit';
+                } elseif (array_key_exists($noAkun, $lap['penyusutan_pajak'])) {
+                    $group = 'penyusutan_pajak';
+                }
+
+                if (!$group) continue;
+
+                $debit = ($trx->input === 'Jurnal') ? $trx->mutasi_masuk : $trx->mutasi_keluar;
+                $kredit = ($trx->input === 'Jurnal') ? $trx->mutasi_keluar : $trx->mutasi_masuk;
+
+                $saldoMutasi = ($normalBalance === 'kredit') ? ($kredit - $debit) : ($debit - $kredit);
+                $lap[$group][$noAkun]['saldo'] += $saldoMutasi;
             }
 
-            if (!$group) continue;
+            $totPendapatan = array_sum(array_column($lap['pendapatan'], 'saldo'));
+            $totBebanPokok = array_sum(array_column($lap['beban_pokok'], 'saldo'));
+            $labaKtr = $totPendapatan - $totBebanPokok;
 
-            $saldo = ($normalBalance === 'kredit')
-                     ? ($trx->mutasi_masuk - $trx->mutasi_keluar)
-                     : ($trx->mutasi_keluar - $trx->mutasi_masuk);
+            $totPemasaran = array_sum(array_column($lap['beban_pemasaran'], 'saldo'));
+            $totUmum = array_sum(array_column($lap['biaya_umum'], 'saldo'));
+            $labaOpr = $labaKtr - ($totPemasaran + $totUmum);
 
-            $laporan[$group][$noAkun]['saldo'] += $saldo;
+            $totPendapatanLuar = 0; $totBiayaLuar = 0;
+            foreach ($lap['pendapatan_biaya_luar'] as $noAkun => $akun) {
+                if (in_array($noAkun, ['6001', '6002'])) {
+                    $totPendapatanLuar += $akun['saldo'];
+                } else {
+                    $totBiayaLuar += $akun['saldo'];
+                }
+            }
+
+            $totLuarUsaha = $totPendapatanLuar + $totBiayaLuar;
+            $labaSblmPajak = $labaOpr + $totLuarUsaha;
+            $totPenyusutan = array_sum(array_column($lap['penyusutan_pajak'], 'saldo'));
+            $labaBrsh = $labaSblmPajak - $totPenyusutan;
+
+            $basePrsn = ($totPendapatan > 0) ? $totPendapatan : (($totPemasaran + $totUmum) - abs($totBiayaLuar));
+
+            return [
+                'laporan' => $lap,
+                'totals' => [
+                    'Pendapatan' => $totPendapatan, 'BebanPokok' => $totBebanPokok, 'LabaKotor' => $labaKtr,
+                    'Pemasaran' => $totPemasaran, 'Umum' => $totUmum, 'LabaOperasional' => $labaOpr,
+                    'LuarUsaha' => $totLuarUsaha, 'LabaSebelumPajak' => $labaSblmPajak,
+                    'PenyusutanPajak' => $totPenyusutan, 'LabaBersih' => $labaBrsh, 'BasePersen' => $basePrsn
+                ]
+            ];
+        };
+
+        $dataSekarang = $hitungPeriode($bulan, $tahun);
+        $dataLalu = $hitungPeriode($prevBulan, $prevTahun);
+
+        $laporanUtama = $dataSekarang['laporan'];
+
+        foreach ($laporanUtama as $group => $akunList) {
+            foreach ($akunList as $noAkun => $akunData) {
+                $laporanUtama[$group][$noAkun]['saldo_lalu'] = $dataLalu['laporan'][$group][$noAkun]['saldo'];
+            }
         }
 
-        $totalPendapatan = array_sum(array_column($laporan['pendapatan'], 'saldo'));
+        return view('laporan.laba_rugi', [
+            'bulan' => $bulan, 'tahun' => $tahun,
+            'laporan' => $laporanUtama,
 
-        $totalBebanPokok = array_sum(array_column($laporan['beban_pokok'], 'saldo'));
-        $labaKotor = $totalPendapatan - $totalBebanPokok;
+            'totalPendapatan' => $dataSekarang['totals']['Pendapatan'],
+            'totalBebanPokok' => $dataSekarang['totals']['BebanPokok'],
+            'labaKotor' => $dataSekarang['totals']['LabaKotor'],
+            'totalPemasaran' => $dataSekarang['totals']['Pemasaran'],
+            'totalUmum' => $dataSekarang['totals']['Umum'],
+            'labaOperasional' => $dataSekarang['totals']['LabaOperasional'],
+            'totalLuarUsaha' => $dataSekarang['totals']['LuarUsaha'],
+            'labaSebelumPajak' => $dataSekarang['totals']['LabaSebelumPajak'],
+            'totalPenyusutanPajak' => $dataSekarang['totals']['PenyusutanPajak'],
+            'labaBersih' => $dataSekarang['totals']['LabaBersih'],
+            'basePersen' => $dataSekarang['totals']['BasePersen'],
 
-        $totalPemasaran = array_sum(array_column($laporan['beban_pemasaran'], 'saldo'));
-        $totalUmum = array_sum(array_column($laporan['biaya_umum'], 'saldo'));
-        $labaOperasional = $labaKotor - ($totalPemasaran + $totalUmum);
-
-        $totalLuarUsaha = array_sum(array_column($laporan['pendapatan_biaya_luar'], 'saldo'));
-
-        $labaSebelumPajak = $labaOperasional + $totalLuarUsaha;
-
-        $totalPenyusutanPajak = array_sum(array_column($laporan['penyusutan_pajak'], 'saldo'));
-        $labaBersih = $labaSebelumPajak - $totalPenyusutanPajak;
-
-        return view('laporan.laba_rugi', compact(
-            'laporan', 'bulan', 'tahun',
-            'totalPendapatan', 'totalBebanPokok', 'labaKotor',
-            'totalPemasaran', 'totalUmum', 'labaOperasional',
-            'totalLuarUsaha', 'labaSebelumPajak',
-            'totalPenyusutanPajak', 'labaBersih'
-        ));
+            'totalPendapatanLalu' => $dataLalu['totals']['Pendapatan'],
+            'totalBebanPokokLalu' => $dataLalu['totals']['BebanPokok'],
+            'labaKotorLalu' => $dataLalu['totals']['LabaKotor'],
+            'totalPemasaranLalu' => $dataLalu['totals']['Pemasaran'],
+            'totalUmumLalu' => $dataLalu['totals']['Umum'],
+            'labaOperasionalLalu' => $dataLalu['totals']['LabaOperasional'],
+            'totalLuarUsahaLalu' => $dataLalu['totals']['LuarUsaha'],
+            'labaSebelumPajakLalu' => $dataLalu['totals']['LabaSebelumPajak'],
+            'totalPenyusutanPajakLalu' => $dataLalu['totals']['PenyusutanPajak'],
+            'labaBersihLalu' => $dataLalu['totals']['LabaBersih'],
+            'basePersenLalu' => $dataLalu['totals']['BasePersen'],
+        ]);
     }
 
     public function neraca(Request $request)
@@ -218,7 +271,19 @@ class LaporanController extends Controller
             $totalLabaRugiBerjalan = 0;
             foreach ($transaksiData as $trx) {
                 if ($trx->coa && $trx->coa->jenis_laporan === 'Laba Rugi') {
-                    $totalLabaRugiBerjalan += ($trx->mutasi_keluar - $trx->mutasi_masuk);
+
+                    $debit = 0;
+                    $kredit = 0;
+
+                    if ($trx->input === 'Jurnal') {
+                        $debit = $trx->mutasi_masuk;
+                        $kredit = $trx->mutasi_keluar;
+                    } else {
+                        $debit = $trx->mutasi_keluar;
+                        $kredit = $trx->mutasi_masuk;
+                    }
+
+                    $totalLabaRugiBerjalan += ($kredit - $debit);
                 }
             }
 

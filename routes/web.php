@@ -53,6 +53,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/keuangan/approve/{id}', [KeuanganController::class, 'approveForm'])->name('keuangan.approve_form');
             Route::post('/keuangan/approve/{id}', [KeuanganController::class, 'processApprove'])->name('keuangan.process_approve');
             Route::resource('keuangan', KeuanganController::class);
+            Route::get('/jurnal/create', [KeuanganController::class, 'createJurnal'])->name('jurnal.create');
+            Route::post('/jurnal/store', [KeuanganController::class, 'storeJurnal'])->name('jurnal.store');
+            Route::get('/jurnal/{id}/edit', [KeuanganController::class, 'editJurnal'])->name('jurnal.edit');
+            Route::put('/jurnal/{id}', [KeuanganController::class, 'updateJurnal'])->name('jurnal.update');
         });
         Route::middleware('role:Super_Admin,Admin,Marketing')->group(function () {
             Route::prefix('leads')->name('leads.')->group(function () {

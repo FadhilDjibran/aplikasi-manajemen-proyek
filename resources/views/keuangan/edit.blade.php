@@ -77,8 +77,14 @@
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Pilih Akun (CoA) <span style="color:red">*</span>
                     </label>
+
                     <select name="no_akun" id="select-coa" class="form-control" required>
-                        @php $groupedCoa = $coa->groupBy('kategori_akun'); @endphp
+                        <option value="">-- Pilih Akun --</option>
+
+                        @php
+                            $groupedCoa = isset($coa) ? $coa->unique('no_akun')->groupBy('kategori_akun') : collect();
+                        @endphp
+
                         @foreach ($groupedCoa as $kategori => $akunList)
                             <optgroup label="{{ $kategori }}">
                                 @foreach ($akunList as $coaItem)

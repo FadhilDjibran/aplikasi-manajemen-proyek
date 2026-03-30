@@ -129,7 +129,6 @@
                                     placeholder="-- Semua Akun --">
                                     <option value="">-- Semua Akun --</option>
                                     @php
-                                        // Variabel $coa ini akan aman dari duplikat karena sudah difilter dari Controller
                                         $groupedCoa = isset($coa) ? $coa->groupBy('kategori_akun') : collect();
                                     @endphp
 
@@ -159,6 +158,13 @@
                 <a href="{{ route('keuangan.create') }}" class="btn btn-primary"
                     style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
                     <i class="fas fa-plus"></i> Tambah Transaksi
+                </a>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                <a href="{{ route('jurnal.create') }}" class="btn btn-primary"
+                    style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
+                    <i class="fas fa-plus"></i> Tambah Jurnal
                 </a>
             </div>
         </div>
@@ -243,18 +249,32 @@
                                         <span style="color: #cbd5e1; font-size: 0.8rem; padding: 4px 8px;">-</span>
                                     @endif
 
-                                    <a href="{{ route('keuangan.edit', $item->id) }}" class="btn"
-                                        style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;"
-                                        title="Edit"><i class="fas fa-edit"></i></a>
+                                    @php
+                                        $isJurnal = $item->input === 'Jurnal';
 
-                                    <form action="{{ route('keuangan.destroy', $item->id) }}" method="POST"
+                                        $editUrl = $isJurnal
+                                            ? route('jurnal.edit', $item->id)
+                                            : route('keuangan.edit', $item->id);
+
+                                        $deleteUrl = route('keuangan.destroy', $item->id);
+                                    @endphp
+
+                                    <a href="{{ $editUrl }}" class="btn"
+                                        style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;"
+                                        title="Edit {{ $isJurnal ? 'Satu Paket Jurnal' : 'Transaksi' }}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
+                                    <form action="{{ $deleteUrl }}" method="POST"
                                         style="margin: 0; display: inline-block;">
-                                        @csrf @method('DELETE')
+                                        @csrf
+                                        @method('DELETE')
                                         <button type="submit" class="btn"
                                             style="color: #dc2626; background: #fef2f2; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #fecaca; border-radius: 4px;"
                                             title="Hapus"
-                                            onclick="return confirm('Yakin ingin menghapus transaksi ini?')"><i
-                                                class="fas fa-trash-alt"></i></button>
+                                            onclick="return confirm('{{ $isJurnal ? 'Ini adalah transaksi Jurnal. Menghapus satu baris akan menghapus seluruh paket jurnal ini agar tetap balance. Yakin?' : 'Yakin ingin menghapus transaksi ini?' }}')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
                                     </form>
 
                                 </div>

@@ -64,22 +64,20 @@
                         <option value="Kas Besar" {{ old('input') == 'Kas Besar' ? 'selected' : '' }}>Kas Besar</option>
                         <option value="Kas Kecil" {{ old('input') == 'Kas Kecil' ? 'selected' : '' }}>Kas Kecil</option>
                         <option value="Bank" {{ old('input') == 'Bank' ? 'selected' : '' }}>Bank</option>
-                        <option value="Jurnal" {{ old('input') == 'Jurnal' ? 'selected' : '' }}>Jurnal Umum</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label"
-                        style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
-                        Pilih Akun (CoA) <span style="color:red">*</span>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label
+                        style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 5px;">
+                        PILIH AKUN (COA) <span style="color:red">*</span>
                     </label>
 
-                    <select name="no_akun" id="select-coa" class="form-control" required
-                        placeholder="-- Cari atau Pilih Akun --">
+                    <select name="no_akun" id="select-coa" class="form-control" required>
                         <option value="">-- Cari atau Pilih Akun --</option>
 
                         @php
-                            $groupedCoa = $coa->groupBy('kategori_akun');
+                            $groupedCoa = isset($coa) ? $coa->unique('no_akun')->groupBy('kategori_akun') : collect();
                         @endphp
 
                         @foreach ($groupedCoa as $kategori => $akunList)
