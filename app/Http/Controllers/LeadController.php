@@ -35,7 +35,8 @@ class LeadController extends Controller
                 $q->where('nama_lead', 'like', '%' . $search . '%')
                   ->orWhere('no_whatsapp', 'like', '%' . $search . '%')
                   ->orWhere('catatan', 'like', '%' . $search . '%')
-                  ->orWhere('kota_domisili', 'like', '%' . $search . '%');
+                  ->orWhere('kota_domisili', 'like', '%' . $search . '%')
+                  ->orWhere('id_lead', 'like', '%' . $search . '%');
             });
         }
 
@@ -66,7 +67,8 @@ class LeadController extends Controller
             $query->where('kota_domisili', $request->kota_filter);
         }
 
-        $query->orderBy('id_lead', 'desc');
+        $query->orderBy('tgl_masuk', 'desc')
+              ->orderBy('created_at', 'desc');
 
         $leads = $query->paginate(15);
 
