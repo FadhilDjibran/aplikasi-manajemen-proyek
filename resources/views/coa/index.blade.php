@@ -113,17 +113,19 @@
             </form>
 
             <div style="display: flex; gap: 8px;">
-                <form action="{{ route('coa.rollover') }}" method="POST" style="margin: 0;"
-                    onsubmit="return confirm('Proses ini akan menduplikasi struktur akun tahun {{ $tahun ?? date('Y') }} ke tahun {{ ($tahun ?? date('Y')) + 1 }}. Lanjutkan?');">
-                    @csrf
-                    <input type="hidden" name="tahun_asal" value="{{ $tahun ?? date('Y') }}">
-                    <input type="hidden" name="tahun_tujuan" value="{{ ($tahun ?? date('Y')) + 1 }}">
+                @if (auth()->check() && in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
+                    <form action="{{ route('coa.rollover') }}" method="POST" style="margin: 0;"
+                        onsubmit="return confirm('Proses ini akan menduplikasi struktur akun tahun {{ $tahun ?? date('Y') }} ke tahun {{ ($tahun ?? date('Y')) + 1 }}. Lanjutkan?');">
+                        @csrf
+                        <input type="hidden" name="tahun_asal" value="{{ $tahun ?? date('Y') }}">
+                        <input type="hidden" name="tahun_tujuan" value="{{ ($tahun ?? date('Y')) + 1 }}">
 
-                    <button type="submit" class="btn"
-                        style="height: 40px; border-radius: 8px; font-weight: 600; background: #f59e0b; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; border: none; cursor: pointer;">
-                        <i class="fas fa-copy"></i> Rollover
-                    </button>
-                </form>
+                        <button type="submit" class="btn"
+                            style="height: 40px; border-radius: 8px; font-weight: 600; background: #f59e0b; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; border: none; cursor: pointer;">
+                            <i class="fas fa-copy"></i> Rollover
+                        </button>
+                    </form>
+                @endif
 
                 <a href="{{ route('coa.create') }}" class="btn btn-primary"
                     style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
@@ -194,16 +196,32 @@
                             </td>
                             <td style="padding: 6px 10px; text-align: center;">
                                 <div style="display: flex; gap: 4px; justify-content: center;">
-                                    <a href="{{ route('coa.edit', $coa->id) }}" class="btn"
-                                        style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;"><i
-                                            class="fas fa-edit"></i></a>
-                                    <form action="{{ route('coa.destroy', $coa->id) }}" method="POST"
-                                        style="margin: 0;">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Hapus akun?')" class="btn"
-                                            style="color: #dc2626; background: #fef2f2; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #fecaca; border-radius: 4px;"><i
-                                                class="fas fa-trash-alt"></i></button>
-                                    </form>
+                                    @php
+                                        $isSuperAdmin = auth()->user()->role === 'Super_Admin';
+                                        $isAdminKeuangan = auth()->user()->role === 'Admin_Keuangan';
+                                        $canEditDelete =
+                                            $isSuperAdmin || ($isAdminKeuangan && $coa->tahun >= date('Y'));
+                                    @endphp
+
+                                    @if ($canEditDelete)
+                                        <a href="{{ route('coa.edit', $coa->id) }}" class="btn"
+                                            style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ route('coa.destroy', $coa->id) }}" method="POST"
+                                            style="margin: 0;">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" onclick="return confirm('Hapus akun?')" class="btn"
+                                                style="color: #dc2626; background: #fef2f2; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #fecaca; border-radius: 4px;">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span style="color: #94a3b8; font-size: 0.8rem; padding: 5px;"
+                                            title="Terkunci: Data tahun sebelumnya">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

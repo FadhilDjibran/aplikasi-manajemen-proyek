@@ -38,7 +38,7 @@
             </div>
 
             <div class="header-actions" style="display: flex; gap: 10px;">
-                @if (Auth::check() && in_array(Auth::user()->role, ['Super_Admin', 'Admin']))
+                @if (Auth::check() && in_array(Auth::user()->role, ['Super_Admin']))
                     <a href="{{ route('index') }}" class="btn btn-primary"
                         style="width: auto; padding: 0.8rem 1.5rem; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap;">
                         <i class="fas fa-users-cog" style="margin-right: 8px;"></i> Kelola User

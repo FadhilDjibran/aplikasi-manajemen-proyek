@@ -29,7 +29,7 @@
 
         @php
             $currentUserPicId = \App\Models\PicMarketing::where('user_id', auth()->id())->value('id_pic');
-            $isAdminOrSuper = in_array(auth()->user()->role, ['Admin', 'Super_Admin']);
+            $isAdminOrSuper = in_array(auth()->user()->role, ['Admin_Marketing', 'Super_Admin']);
         @endphp
 
         <div

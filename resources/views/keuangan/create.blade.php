@@ -61,9 +61,16 @@
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; cursor: pointer;"
                         required>
                         <option value="">-- Pilih Tipe Input --</option>
-                        <option value="Kas Besar" {{ old('input') == 'Kas Besar' ? 'selected' : '' }}>Kas Besar</option>
+
+                        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
+                            <option value="Kas Besar" {{ old('input') == 'Kas Besar' ? 'selected' : '' }}>Kas Besar</option>
+                        @endif
+
                         <option value="Kas Kecil" {{ old('input') == 'Kas Kecil' ? 'selected' : '' }}>Kas Kecil</option>
-                        <option value="Bank" {{ old('input') == 'Bank' ? 'selected' : '' }}>Bank</option>
+
+                        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
+                            <option value="Bank" {{ old('input') == 'Bank' ? 'selected' : '' }}>Bank</option>
+                        @endif
                     </select>
                 </div>
 

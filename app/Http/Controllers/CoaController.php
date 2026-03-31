@@ -52,6 +52,12 @@ class CoaController extends Controller
             return redirect()->back()->withInput()->with('error', 'Pilih proyek aktif terlebih dahulu.');
         }
 
+        if ($tahun < date('Y') && auth()->role !== 'Super_Admin') {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Hanya Super Admin yang diizinkan menambahkan data CoA untuk tahun-tahun sebelumnya.');
+        }
+
         $request->merge([
             'saldo_awal_debit' => str_replace('.', '', $request->saldo_awal_debit ?? 0),
             'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit ?? 0),
@@ -61,7 +67,7 @@ class CoaController extends Controller
             'no_akun' => [
                 'required',
                 'max:20',
-                Rule::unique('coa', 'no_akun')->where(function ($query) use ($projectId, $tahun) {
+                \Illuminate\Validation\Rule::unique('coa', 'no_akun')->where(function ($query) use ($projectId, $tahun) {
                     return $query->where('project_id', $projectId)->where('tahun', $tahun);
                 })
             ],
@@ -98,6 +104,14 @@ class CoaController extends Controller
     public function edit($id)
     {
         $coa = Coa::findOrFail($id);
+        $userRole = auth()->role;
+        if ($userRole !== 'Super_Admin') {
+            if ($userRole === 'Admin_Keuangan' && $coa->tahun < date('Y')) {
+                return redirect()->back()->with('error', 'Admin Keuangan tidak dapat mengedit CoA tahun sebelumnya.');
+            } elseif (!in_array($userRole, ['Super_Admin', 'Admin_Keuangan'])) {
+                return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk mengedit CoA.');
+            }
+        }
         return view('coa.edit', compact('coa'));
     }
 
@@ -142,6 +156,14 @@ class CoaController extends Controller
     public function destroy($id)
     {
         $coa = Coa::findOrFail($id);
+        $userRole = auth()->role;
+        if ($userRole !== 'Super_Admin') {
+            if ($userRole === 'Admin_Keuangan' && $coa->tahun < date('Y')) {
+                return redirect()->back()->with('error', 'Admin Keuangan tidak dapat menghapus CoA tahun sebelumnya.');
+            } elseif (!in_array($userRole, ['Super_Admin', 'Admin_Keuangan'])) {
+                return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menghapus CoA.');
+            }
+        }
         $tahun = $coa->tahun;
         $coa->delete();
 

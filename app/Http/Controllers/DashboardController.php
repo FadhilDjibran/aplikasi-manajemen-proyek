@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $projectId = session('active_project_id');
         $isSuper = $user->role === 'Super_Admin';
-        $isAdmin = $user->role === 'Admin';
+        $isAdmin = $user->role === 'Admin_Marketing';
         $isAdminOrSuper = $isSuper || $isAdmin;
 
         $stats = [

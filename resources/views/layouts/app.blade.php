@@ -43,7 +43,7 @@
                     <i class="fas fa-chart-line" style="width: 24px;"></i> Dashboard
                 </a>
 
-                @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin', 'Marketing']))
+                @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Marketing', 'Marketing']))
                     @php
                         $isCrmActive =
                             request()->is('leads*') ||
@@ -82,7 +82,7 @@
                     </div>
                 @endif
 
-                @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin', 'Keuangan']))
+                @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan', 'Keuangan']))
                     @php
                         $isKeuanganActive =
                             request()->routeIs('coa.*') ||
@@ -115,19 +115,21 @@
                                 Keuangan
                             </a>
 
-                            <a href="{{ route('laporan.laba_rugi') }}"
-                                class="sidebar-link sub-link {{ request()->routeIs('laporan.laba_rugi') ? 'active' : '' }}"
-                                style="font-size: 0.9rem;">
-                                <i class="fas fa-chart-line" style="width: 20px; font-size: 0.85rem;"></i> Laporan Laba
-                                Rugi
-                            </a>
+                            @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
+                                <a href="{{ route('laporan.laba_rugi') }}"
+                                    class="sidebar-link sub-link {{ request()->routeIs('laporan.laba_rugi') ? 'active' : '' }}"
+                                    style="font-size: 0.9rem;">
+                                    <i class="fas fa-chart-line" style="width: 20px; font-size: 0.85rem;"></i> Laporan
+                                    Laba Rugi
+                                </a>
 
-                            <a href="{{ route('laporan.neraca') }}"
-                                class="sidebar-link sub-link {{ request()->routeIs('laporan.neraca') ? 'active' : '' }}"
-                                style="font-size: 0.9rem;">
-                                <i class="fas fa-balance-scale" style="width: 20px; font-size: 0.85rem;"></i> Laporan
-                                Neraca
-                            </a>
+                                <a href="{{ route('laporan.neraca') }}"
+                                    class="sidebar-link sub-link {{ request()->routeIs('laporan.neraca') ? 'active' : '' }}"
+                                    style="font-size: 0.9rem;">
+                                    <i class="fas fa-balance-scale" style="width: 20px; font-size: 0.85rem;"></i>
+                                    Laporan Neraca
+                                </a>
+                            @endif
 
                         </div>
                     </div>
@@ -150,7 +152,7 @@
                     <div id="settingsMenu" class="dropdown-content"
                         style="display: {{ $isSettingsActive ? 'block' : 'none' }}; margin-bottom: 5px;">
 
-                        @if (auth()->user()->role === 'Admin' || auth()->user()->role === 'Super_Admin')
+                        @if (auth()->user()->role === 'Admin_Marketing' || auth()->user()->role === 'Super_Admin')
                             <a href="{{ route('tipe_rumah.index') }}"
                                 class="sidebar-link sub-link {{ request()->routeIs('tipe_rumah.*') ? 'active' : '' }}"
                                 style="font-size: 0.9rem;">

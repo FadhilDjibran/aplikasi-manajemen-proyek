@@ -43,7 +43,7 @@
                 <div style="position: relative; flex: 1; max-width: 300px;">
                     <i class="fas fa-search"
                         style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
-                    <input type="text" name="search" class="form-control" placeholder="Cari keterangan / no. akun..."
+                    <input type="text" name="search" class="form-control" placeholder="Cari..."
                         value="{{ request('search') }}"
                         style="padding-left: 38px; border-radius: 8px; border: 1px solid #e2e8f0; height: 40px; width: 100%;">
                 </div>
@@ -161,12 +161,14 @@
                 </a>
             </div>
 
-            <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                <a href="{{ route('jurnal.create') }}" class="btn btn-primary"
-                    style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
-                    <i class="fas fa-plus"></i> Tambah Jurnal
-                </a>
-            </div>
+            @if (auth()->check() && in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
+                <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                    <a href="{{ route('jurnal.create') }}" class="btn btn-primary"
+                        style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
+                        <i class="fas fa-plus"></i> Tambah Jurnal
+                    </a>
+                </div>
+            @endif
         </div>
 
         <div class="table-container" style="padding: 0; margin: 0; overflow-x: auto;">

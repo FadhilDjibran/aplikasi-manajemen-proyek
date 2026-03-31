@@ -19,24 +19,31 @@
                 </p>
             </div>
 
-            <form method="GET" style="display: flex; gap: 10px;">
-                <select name="bulan" class="form-control" style="width: 160px; border-radius: 6px;">
-                    <option value="all" {{ $bulan === 'all' ? 'selected' : '' }}>Setahun Penuh</option>
-                    @for ($i = 1; $i <= 12; $i++)
-                        <option value="{{ sprintf('%02d', $i) }}" {{ $bulan == sprintf('%02d', $i) ? 'selected' : '' }}>
-                            {{ date('F', mktime(0, 0, 0, $i, 1)) }}
-                        </option>
-                    @endfor
-                </select>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <form method="GET" style="display: flex; gap: 10px; margin: 0;">
+                    <select name="bulan" class="form-control" style="width: 160px; border-radius: 6px;">
+                        <option value="all" {{ $bulan === 'all' ? 'selected' : '' }}>Setahun Penuh</option>
+                        @for ($i = 1; $i <= 12; $i++)
+                            <option value="{{ sprintf('%02d', $i) }}" {{ $bulan == sprintf('%02d', $i) ? 'selected' : '' }}>
+                                {{ date('F', mktime(0, 0, 0, $i, 1)) }}
+                            </option>
+                        @endfor
+                    </select>
 
-                <select name="tahun" class="form-control" style="width: 100px; border-radius: 6px;">
-                    @for ($i = date('Y') + 1; $i >= date('Y') - 3; $i--)
-                        <option value="{{ $i }}" {{ $tahun == $i ? 'selected' : '' }}>{{ $i }}
-                        </option>
-                    @endfor
-                </select>
-                <button type="submit" class="btn btn-primary" style="border-radius: 6px;">Filter</button>
-            </form>
+                    <select name="tahun" class="form-control" style="width: 100px; border-radius: 6px;">
+                        @for ($i = date('Y') + 1; $i >= date('Y') - 3; $i--)
+                            <option value="{{ $i }}" {{ $tahun == $i ? 'selected' : '' }}>{{ $i }}
+                            </option>
+                        @endfor
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 6px;">Filter</button>
+                </form>
+
+                <a href="{{ route('laporan.laba_rugi.excel', request()->query()) }}" class="btn btn-primary"
+                    style="border-radius: 6px;">
+                    <i class="fas fa-file-excel"></i> Ekspor Excel
+                </a>
+            </div>
         </div>
 
         <div style="padding: 2rem;">
@@ -232,7 +239,8 @@
                         style="background-color: #ffff00; font-weight: bold; border-top: 2px solid #000; border-bottom: 2px solid #000;">
                         <td colspan="2" style="text-align: center; padding: 12px 8px; font-size: 1rem;">LABA (RUGI)
                             OPERASIONAL</td>
-                        <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">{{ formatRp($labaOperasional) }}
+                        <td style="text-align: right; padding: 12px 8px; font-size: 1rem;">
+                            {{ formatRp($labaOperasional) }}
                         </td>
                         <td style="text-align: right; padding: 12px 8px;"></td>
                         <td style="text-align: right; padding: 12px 8px; font-size: 1rem; color: #475569;">

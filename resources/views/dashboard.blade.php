@@ -5,7 +5,7 @@
     @php
         $user = auth()->user();
         $isSuper = $user->role === 'Super_Admin';
-        $isAdmin = $user->role === 'Admin';
+        $isAdmin = $user->role === 'Admin_Marketing';
         $isAdminOrSuper = $isSuper || $isAdmin;
 
         $overdueItems = $priorities->where('tgl_follow_up_berikutnya', '<', now()->format('Y-m-d'));

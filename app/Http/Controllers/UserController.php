@@ -24,7 +24,7 @@ class UserController extends Controller
 
         if ($auth->role === 'Super_Admin') {
             $users = $query->get();
-        } elseif ($auth->role === 'Admin') {
+        } elseif (in_array($auth->role, ['Admin_Marketing', 'Admin_Keuangan'])) {
             $users = $query->where(function ($q) use ($auth) {
                 $q->where('project_id', $auth->project_id)
                 ->orWhere('id', $auth->id)
@@ -32,7 +32,7 @@ class UserController extends Controller
                     $subQ->whereNull('project_id')
                         ->where(function ($roleQ) {
                             $roleQ->whereNull('role')
-                                    ->orWhereNotIn('role', ['Super_Admin', 'Admin']);
+                                  ->orWhereNotIn('role', ['Super_Admin', 'Admin_Marketing', 'Admin_Keuangan']);
                         });
                 });
             })->get();
@@ -47,17 +47,23 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $auth = Auth::user();
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:4',
-            'role' => 'required|in:Super_Admin,Admin,Marketing,Keuangan',
+            'role' => 'required|in:Super_Admin,Admin_Marketing,Admin_Keuangan,Marketing,Keuangan',
             'project_id' => 'nullable|exists:projects,id',
             'kpi_target' => 'nullable|numeric|min:0'
         ]);
 
-        if (Auth::user()->role === 'Admin' && !in_array($request->role, ['Marketing', 'Keuangan'])) {
+        if ($auth->role === 'Admin_Marketing' && !in_array($request->role, ['Marketing', 'Keuangan'])) {
             return redirect()->back()->with('error', 'Anda hanya dapat menambahkan user Marketing atau Keuangan.');
+        }
+
+        if ($auth->role === 'Admin_Keuangan' && $request->role !== 'Keuangan') {
+            return redirect()->back()->with('error', 'Anda hanya dapat menambahkan user dengan role Keuangan.');
         }
 
         $user = User::create([
@@ -80,16 +86,21 @@ class UserController extends Controller
 
         if ($auth->role === 'Super_Admin') {
         }
-        elseif ($auth->role === 'Admin') {
-            $isTargetValid = ($user->id === $auth->id) || in_array($user->role, ['Marketing', 'Keuangan']) || empty($user->role);
+        elseif (in_array($auth->role, ['Admin_Marketing', 'Admin_Keuangan'])) {
+
+            $allowedRoles = $auth->role === 'Admin_Marketing'
+                            ? ['Marketing', 'Keuangan']
+                            : ['Keuangan'];
+
+            $isTargetValid = ($user->id === $auth->id) || in_array($user->role, $allowedRoles) || empty($user->role);
 
             if (!$isTargetValid) {
                 return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk mengedit user ini.');
             }
 
-            $isPromoting = in_array($request->role, ['Admin', 'Super_Admin']);
+            $isPromoting = in_array($request->role, ['Admin_Marketing', 'Admin_Keuangan', 'Super_Admin']);
             if ($isPromoting && $user->id !== $auth->id) {
-                return redirect()->back()->with('error', 'Anda tidak bisa memberikan hak akses Admin atau Super Admin.');
+                return redirect()->back()->with('error', 'Anda tidak bisa memberikan hak akses Admin atau Super Admin kepada user lain.');
             }
         }
         else {
@@ -105,7 +116,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$id,
-            'role' => 'nullable|in:Super_Admin,Admin,Marketing,Keuangan',
+            'role' => 'nullable|in:Super_Admin,Admin_Marketing,Admin_Keuangan,Marketing,Keuangan',
             'password' => 'nullable|string|min:4',
             'project_id' => 'nullable|exists:projects,id',
             'kpi_target' => 'nullable|numeric|min:0'
@@ -114,7 +125,7 @@ class UserController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
 
-        if (in_array($auth->role, ['Admin', 'Super_Admin'])) {
+        if (in_array($auth->role, ['Admin_Marketing', 'Admin_Keuangan', 'Super_Admin'])) {
             $user->role = $request->role;
             $user->project_id = $request->project_id;
         }
@@ -139,8 +150,12 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
         }
 
-        if ($auth->role === 'Admin' && !in_array($user->role, ['Marketing', 'Keuangan'])) {
+        if ($auth->role === 'Admin_Marketing' && !in_array($user->role, ['Marketing', 'Keuangan'])) {
             return redirect()->back()->with('error', 'Anda hanya dapat menghapus akun Marketing atau Keuangan.');
+        }
+
+        if ($auth->role === 'Admin_Keuangan' && $user->role !== 'Keuangan') {
+            return redirect()->back()->with('error', 'Anda hanya dapat menghapus akun Keuangan.');
         }
 
         PicMarketing::where('user_id', $user->id)->delete();
@@ -151,7 +166,7 @@ class UserController extends Controller
 
     private function syncToPicMarketing($user, $targetKpi = 0)
     {
-        if (in_array($user->role, ['Marketing', 'Admin'])) {
+        if (in_array($user->role, ['Marketing', 'Admin_Marketing'])) {
             PicMarketing::updateOrCreate(
                 ['user_id' => $user->id],
                 [

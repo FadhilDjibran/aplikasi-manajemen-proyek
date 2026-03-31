@@ -11,6 +11,7 @@
 
     <div class="card"
         style="padding: 2.5rem; max-width: 1000px; margin: 0 auto; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+
         @if (session('success'))
             <div
                 style="background-color: #f0fdf4; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #bbf7d0;">
@@ -19,6 +20,16 @@
                 </div>
             </div>
         @endif
+
+        @if (session('error'))
+            <div
+                style="background-color: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #fecaca;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                    <i class="fas fa-times-circle"></i> {{ session('error') }}
+                </div>
+            </div>
+        @endif
+
         @if ($errors->any())
             <div
                 style="background-color: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #fecaca;">
@@ -42,6 +53,26 @@
             </h4>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+                <div class="form-group">
+                    <label class="form-label"
+                        style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
+                        Tahun Pembukuan <span style="color:red">*</span>
+                    </label>
+                    <select name="tahun" class="form-control"
+                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; cursor: pointer;"
+                        required>
+                        @for ($i = date('Y') + 1; $i >= date('Y') - 3; $i--)
+                            @if ($i < date('Y') && auth()->user()->role !== 'Super_Admin')
+                                <option value="{{ $i }}" disabled>{{ $i }} (Terkunci)</option>
+                            @else
+                                <option value="{{ $i }}" {{ old('tahun', date('Y')) == $i ? 'selected' : '' }}>
+                                    {{ $i }}</option>
+                            @endif
+                        @endfor
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
@@ -62,7 +93,7 @@
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;" required>
                 </div>
 
-                <div class="form-group" style="grid-column: span 2;">
+                <div class="form-group">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Nama Akun <span style="color:red">*</span>
@@ -105,9 +136,48 @@
                         <option value="Neraca" {{ old('jenis_laporan') == 'Neraca' ? 'selected' : '' }}>Neraca (NRC)
                         </option>
                         <option value="Laba Rugi" {{ old('jenis_laporan') == 'Laba Rugi' ? 'selected' : '' }}>Laba Rugi
-                            (LR)
-                        </option>
+                            (LR)</option>
                     </select>
+                </div>
+            </div>
+
+            <h4 class="mb-4"
+                style="border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; margin-top: 2.5rem; color: #1e293b; font-weight: 700; font-size: 1.1rem;">
+                Saldo Awal <span style="font-weight: normal; color: #94a3b8; font-size: 0.9rem;">(Opsional)</span>
+            </h4>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-group">
+                    <label class="form-label"
+                        style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
+                        Saldo Awal (Debit)
+                    </label>
+                    <div style="position: relative;">
+                        <span
+                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 600;">Rp</span>
+
+                        <input type="text" class="form-control money-format" value="{{ old('saldo_awal_debit', 0) }}"
+                            style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem 0.5rem 2.5rem;">
+
+                        <input type="hidden" name="saldo_awal_debit" value="{{ old('saldo_awal_debit', 0) }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"
+                        style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
+                        Saldo Awal (Kredit)
+                    </label>
+                    <div style="position: relative;">
+                        <span
+                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 600;">Rp</span>
+
+                        <input type="text" class="form-control money-format"
+                            value="{{ old('saldo_awal_kredit', 0) }}"
+                            style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem 0.5rem 2.5rem;">
+
+                        <input type="hidden" name="saldo_awal_kredit" value="{{ old('saldo_awal_kredit', 0) }}">
+                    </div>
                 </div>
             </div>
 
@@ -129,3 +199,7 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/money-format.js') }}"></script>
+@endpush

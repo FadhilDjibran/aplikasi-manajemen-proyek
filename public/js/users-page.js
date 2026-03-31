@@ -5,7 +5,7 @@ function toggleKpiInput(mode) {
     const kpiWrapper = document.getElementById(mode + 'KpiWrapper');
     const kpiInput = mode === 'edit' ? document.getElementById('editKpi') : document.querySelector('input[name="kpi_target"]');
 
-    if (roleSelect.value === 'Marketing' || roleSelect.value === 'Admin') {
+    if (roleSelect.value === 'Marketing' || roleSelect.value === 'Admin_Marketing') {
         if (kpiWrapper) kpiWrapper.classList.add('active');
         if (kpiInput) kpiInput.required = true;
     } else {
@@ -30,8 +30,9 @@ function openEditModal(user, kpiValue) {
         return;
     }
 
-    if (currentUserRole === 'Admin') {
-        if ((user.role === 'Super_Admin' || user.role === 'Admin') && user.id !== currentUserId) {
+    if (currentUserRole === 'Admin_Marketing' || currentUserRole === 'Admin_Keuangan') {
+        const adminRoles = ['Super_Admin', 'Admin_Marketing', 'Admin_Keuangan'];
+        if (adminRoles.includes(user.role) && user.id !== currentUserId) {
             alert("Anda tidak dapat mengedit Super Admin atau Admin lain.");
             return;
         }
@@ -51,21 +52,38 @@ function openEditModal(user, kpiValue) {
         roleSelect.appendChild(placeholder);
 
         if (currentUserRole === 'Super_Admin') {
-            const roles = ['Super_Admin', 'Admin', 'Marketing', 'Keuangan'];
+            const roles = ['Super_Admin', 'Admin_Marketing', 'Admin_Keuangan', 'Marketing', 'Keuangan'];
             roles.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r;
                 opt.text = r.replace('_', ' ');
                 roleSelect.appendChild(opt);
             });
-        } else if (currentUserRole === 'Admin') {
+        }
+        else if (currentUserRole === 'Admin_Marketing') {
             if (user.id === currentUserId) {
                 const opt = document.createElement('option');
-                opt.value = 'Admin';
-                opt.text = 'Admin';
+                opt.value = 'Admin_Marketing';
+                opt.text = 'Admin Marketing';
                 roleSelect.appendChild(opt);
             } else {
                 const roles = ['Marketing', 'Keuangan'];
+                roles.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r;
+                    opt.text = r;
+                    roleSelect.appendChild(opt);
+                });
+            }
+        }
+        else if (currentUserRole === 'Admin_Keuangan') {
+            if (user.id === currentUserId) {
+                const opt = document.createElement('option');
+                opt.value = 'Admin_Keuangan';
+                opt.text = 'Admin Keuangan';
+                roleSelect.appendChild(opt);
+            } else {
+                const roles = ['Keuangan'];
                 roles.forEach(r => {
                     const opt = document.createElement('option');
                     opt.value = r;

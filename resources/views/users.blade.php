@@ -47,7 +47,8 @@
                 </ul>
             </div>
         @endif
-        @if (auth()->check() && in_array(auth()->user()->role, ['Super_Admin', 'Admin']))
+
+        @if (auth()->check() && in_array(auth()->user()->role, ['Super_Admin', 'Admin_Marketing', 'Admin_Keuangan']))
             <div class="card" style="padding: 2rem; margin-bottom: 2rem; border: none;">
                 <h4 style="margin-bottom: 1rem; color: var(--bg-main);">Tambah User Baru</h4>
                 <form action="{{ route('store') }}" method="POST">
@@ -72,16 +73,22 @@
                                 onchange="toggleKpiInput('create')">
                                 @if (Auth::user()->role === 'Super_Admin')
                                     <option value="Super_Admin">Super Admin</option>
-                                    <option value="Admin">Admin</option>
+                                    <option value="Admin_Marketing">Admin Marketing</option>
+                                    <option value="Admin_Keuangan">Admin Keuangan</option>
+                                    <option value="Marketing" selected>Marketing</option>
+                                    <option value="Keuangan">Keuangan</option>
+                                @elseif(Auth::user()->role === 'Admin_Marketing')
+                                    <option value="Marketing" selected>Marketing</option>
+                                    <option value="Keuangan">Keuangan</option>
+                                @elseif(Auth::user()->role === 'Admin_Keuangan')
+                                    <option value="Keuangan" selected>Keuangan</option>
                                 @endif
-                                <option value="Marketing" selected>Marketing</option>
-                                <option value="Keuangan">Keuangan</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Assign ke Proyek <small>(Opsional)</small></label>
-                            @if (auth()->user()->role === 'Admin')
+                            @if (in_array(auth()->user()->role, ['Admin_Marketing', 'Admin_Keuangan']))
                                 <input type="hidden" name="project_id" value="{{ session('active_project_id') }}">
                                 <select class="form-control" disabled
                                     style="background-color: #f8fafc; cursor: not-allowed;">
@@ -120,6 +127,7 @@
                 </form>
             </div>
         @endif
+
         <div class="table-container" style="border: none; box-shadow: 0 10px 15px rgba(0,0,0,0.2);">
             <table class="custom-table">
                 <thead>
@@ -128,7 +136,6 @@
                         <th>Email</th>
                         <th style="min-width: 200px; text-align: center;">Proyek</th>
                         <th>Hak Akses</th>
-                        <th>KPI</th>
                         <th style="text-align: center;">Tindakan</th>
                     </tr>
                 </thead>
@@ -165,29 +172,31 @@
                                     <span style="color: #94a3b8;">-</span>
                                 @endif
                             </td>
-                            <td>
-                                @if (in_array($user->role, ['Marketing', 'Admin']) && $user->picMarketing)
-                                    <span style="color: #166534; font-weight: 600;">
-                                        {{ number_format($user->picMarketing->kpi_target, 0, ',', '.') }}
-                                    </span>
-                                @else
-                                    <span style="color: #cbd5e1;">-</span>
-                                @endif
-                            </td>
                             <td style="text-align: center;">
                                 <div style="display: flex; gap: 10px; justify-content: center;">
                                     @php
                                         $isSelf = Auth::id() === $user->id;
                                         $isSuperAdmin = Auth::user()->role === 'Super_Admin';
-                                        $isAdmin = Auth::user()->role === 'Admin';
+                                        $isAdminMarketing = Auth::user()->role === 'Admin_Marketing';
+                                        $isAdminKeuangan = Auth::user()->role === 'Admin_Keuangan';
 
-                                        $isTargetProtected = in_array($user->role, ['Super_Admin', 'Admin']);
+                                        // Definisi proteksi: Admin tidak bisa mengedit sesama Admin/Super Admin kecuali dirinya sendiri
+                                        $isTargetProtected = in_array($user->role, [
+                                            'Super_Admin',
+                                            'Admin_Marketing',
+                                            'Admin_Keuangan',
+                                        ]);
 
-                                        $canEdit = $isSuperAdmin || $isSelf || ($isAdmin && !$isTargetProtected);
+                                        $canEdit =
+                                            $isSuperAdmin ||
+                                            $isSelf ||
+                                            (($isAdminMarketing || $isAdminKeuangan) && !$isTargetProtected);
 
                                         $canDelete =
                                             ($isSuperAdmin && !$isSelf) ||
-                                            ($isAdmin && !$isTargetProtected && !$isSelf);
+                                            (($isAdminMarketing || $isAdminKeuangan) &&
+                                                !$isTargetProtected &&
+                                                !$isSelf);
                                     @endphp
 
                                     @if ($canEdit)
@@ -197,8 +206,9 @@
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
                                     @else
-                                        <span style="color: #94a3b8; font-size: 0.8rem; padding: 5px;"><i
-                                                class="fas fa-lock"></i></span>
+                                        <span style="color: #94a3b8; font-size: 0.8rem; padding: 5px;">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
                                     @endif
 
                                     @if ($canDelete)
@@ -211,8 +221,7 @@
                                             </button>
                                         </form>
                                     @elseif($isSelf)
-                                        <span style="font-size: 0.8rem; color: #94a3b8; padding: 5px;">(Akun
-                                            Anda)</span>
+                                        <span style="font-size: 0.8rem; color: #94a3b8; padding: 5px;">(Akun Anda)</span>
                                     @endif
                                 </div>
                             </td>
@@ -221,7 +230,8 @@
                 </tbody>
             </table>
         </div>
-        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin']))
+
+        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Marketing', 'Admin_Keuangan']))
             <div style="margin-top: 1rem; margin-bottom: 2rem; display: flex; justify-content: flex-end; gap: 12px;">
                 <button type="button" onclick="toggleUserTanpaRole()" class="btn btn-primary"
                     style="width: 260px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; white-space: nowrap;">
@@ -240,6 +250,7 @@
         @endif
 
     </div>
+
     <div id="editModal" class="modal compact-modal">
         <div class="modal-content compact-content">
 
@@ -265,7 +276,7 @@
                             <input type="email" name="email" id="editEmail" class="form-control" required>
                         </div>
 
-                        @if (in_array(auth()->user()->role, ['Admin', 'Super_Admin']))
+                        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Marketing', 'Admin_Keuangan']))
                             <div class="form-group">
                                 <label class="form-label">Role</label>
                                 <select name="role" id="editRole" class="form-control" required
@@ -275,7 +286,7 @@
 
                             <div class="form-group">
                                 <label class="form-label">Assign ke Proyek</label>
-                                @if (auth()->user()->role === 'Admin')
+                                @if (in_array(auth()->user()->role, ['Admin_Marketing', 'Admin_Keuangan']))
                                     <input type="hidden" name="project_id" value="{{ session('active_project_id') }}">
                                     <select class="form-control disabled-select" disabled>
                                         <option value="{{ session('active_project_id') }}" selected>

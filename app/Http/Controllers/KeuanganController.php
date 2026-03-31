@@ -86,6 +86,12 @@ class KeuanganController extends Controller
             'bukti'            => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
+        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
+            if (in_array($request->input, ['Kas Besar', 'Bank'])) {
+                return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki izin untuk menginput Kas Besar atau Bank.');
+            }
+        }
+
         $buktiPath = null;
         if ($request->hasFile('bukti')) {
             $buktiPath = $request->file('bukti')->store('bukti_transaksi', 'public');
@@ -117,6 +123,10 @@ class KeuanganController extends Controller
 
     public function createJurnal()
     {
+        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menambah Jurnal.');
+        }
+
         $projectId = session('active_project_id');
 
         $coa = \App\Models\Coa::where('project_id', $projectId)
@@ -128,6 +138,10 @@ class KeuanganController extends Controller
 
     public function storeJurnal(Request $request)
     {
+        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menambah Jurnal.');
+        }
+
         $projectId = session('active_project_id');
 
         $request->validate([
@@ -314,6 +328,12 @@ class KeuanganController extends Controller
             'jenis_penggunaan' => 'nullable|string',
             'bukti'            => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
+
+        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
+            if (in_array($request->input, ['Kas Besar', 'Bank'])) {
+                return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki izin untuk menginput Kas Besar atau Bank.');
+            }
+        }
 
         $this->adjustBalances($transaksi, 'reverse');
 
