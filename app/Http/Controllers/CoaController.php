@@ -172,22 +172,7 @@ class CoaController extends Controller
         }
 
         foreach ($coaAsal as $coa) {
-            $saldoAkhir = (float) $coa->saldo_akhir;
-            $awalDebit = 0;
-            $awalKredit = 0;
-
-            if ($coa->jenis_laporan === 'Neraca') {
-
-                if ($saldoAkhir > 0) {
-                    $awalDebit = $saldoAkhir;
-                } elseif ($saldoAkhir < 0) {
-                    $awalKredit = abs($saldoAkhir);
-                }
-            }
-
-            $saldoAkhirBaru = $awalDebit - $awalKredit;
-
-            Coa::updateOrCreate(
+            Coa::firstOrCreate(
                 [
                     'project_id' => $projectId,
                     'tahun'      => $tahunTujuan,
@@ -198,14 +183,14 @@ class CoaController extends Controller
                     'nama_akun'         => $coa->nama_akun,
                     'posisi_normal'     => $coa->posisi_normal,
                     'jenis_laporan'     => $coa->jenis_laporan,
-                    'saldo_awal_debit'  => $awalDebit,
-                    'saldo_awal_kredit' => $awalKredit,
-                    'saldo_akhir'       => $saldoAkhirBaru,
+                    'saldo_awal_debit'  => 0,
+                    'saldo_awal_kredit' => 0,
+                    'saldo_akhir'       => 0,
                 ]
             );
         }
 
         return redirect()->route('coa.index', ['tahun' => $tahunTujuan])
-                         ->with('success', "Tutup Buku Berhasil! Data CoA {$tahunAsal} telah disalin ke {$tahunTujuan} dengan penyesuaian Saldo Awal yang tepat.");
+                         ->with('success', "Struktur CoA tahun {$tahunAsal} berhasil disalin ke tahun {$tahunTujuan}.");
     }
 }

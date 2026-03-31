@@ -261,7 +261,7 @@
 
                                     <a href="{{ $editUrl }}" class="btn"
                                         style="color: #059669; background: #ecfdf5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #bbf7d0; border-radius: 4px;"
-                                        title="Edit {{ $isJurnal ? 'Satu Paket Jurnal' : 'Transaksi' }}">
+                                        title="Edit {{ $isJurnal ? 'Jurnal' : 'Transaksi' }}">
                                         <i class="fas fa-edit"></i>
                                     </a>
 

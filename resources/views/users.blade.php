@@ -126,7 +126,7 @@
                     <tr>
                         <th style="Width: 120px;">Nama</th>
                         <th>Email</th>
-                        <th style="Width: 220px; text-align: center;">Proyek</th>
+                        <th style="min-width: 200px; text-align: center;">Proyek</th>
                         <th>Hak Akses</th>
                         <th>KPI</th>
                         <th style="text-align: center;">Tindakan</th>

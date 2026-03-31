@@ -54,6 +54,7 @@ class LaporanController extends Controller
                     '5108' => ['nama' => 'BBM, TOL, TRANSPORT', 'saldo' => 0],
                     '5109' => ['nama' => 'PARKIR', 'saldo' => 0],
                     '5111' => ['nama' => 'PEMELIHARAAN ASET', 'saldo' => 0],
+                    '5112' => ['nama' => 'SEWA OPERASIONAL', 'saldo' => 0],
                     '5113' => ['nama' => 'ALAT TULIS KANTOR', 'saldo' => 0],
                     '5114' => ['nama' => 'KEPERLUAN KANTOR LAIN', 'saldo' => 0],
                     '5115' => ['nama' => 'PERJALANAN DINAS', 'saldo' => 0],

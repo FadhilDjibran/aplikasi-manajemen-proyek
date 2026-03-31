@@ -87,8 +87,9 @@
                         $isKeuanganActive =
                             request()->routeIs('coa.*') ||
                             request()->is('keuangan*') ||
+                            request()->is('jurnal*') ||
                             request()->routeIs('laporan.laba_rugi') ||
-                            request()->routeIs('laporan.neraca'); // <-- Pengecekan Neraca ditambahkan
+                            request()->routeIs('laporan.neraca');
                     @endphp
                     <div class="sidebar-dropdown">
                         <a href="javascript:void(0)"
@@ -108,7 +109,7 @@
                             </a>
 
                             <a href="{{ route('keuangan.index') }}"
-                                class="sidebar-link sub-link {{ request()->is('keuangan*') ? 'active' : '' }}"
+                                class="sidebar-link sub-link {{ request()->is('keuangan*') || request()->is('jurnal*') ? 'active' : '' }}"
                                 style="font-size: 0.9rem;">
                                 <i class="fas fa-database" style="width: 20px; font-size: 0.85rem;"></i> Database
                                 Keuangan
