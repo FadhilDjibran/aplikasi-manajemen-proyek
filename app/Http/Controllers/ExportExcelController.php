@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Keuangan;
+use App\Models\Project;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -18,7 +19,7 @@ class ExportExcelController extends Controller
         $projectId = session('active_project_id');
         if (!$projectId) return redirect()->back()->with('error', 'Pilih proyek terlebih dahulu.');
 
-        $project = \App\Models\Project::find($projectId);
+        $project = Project::find($projectId);
         $nama = $project ? $project->nama_proyek : 'TIDAK DITEMUKAN';
         $HeaderNamaProyek = "PERUMAHAN " . strtoupper($nama);
 

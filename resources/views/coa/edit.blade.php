@@ -132,40 +132,25 @@
             <div
                 style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
 
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label"
-                        style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
-                        Saldo Awal Debit (Rp)
-                    </label>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600;">Saldo Awal Debit (Rp)</label>
                     <div style="display: flex; align-items: stretch; width: 100%;">
-                        <input type="text" class="form-control money-format" value="{{ $displayDebit }}" placeholder="0"
-                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; color: #059669; font-weight: 600; flex: 1;">
+                        <input type="text" class="form-control money-format" value="{{ $coa->saldo_awal_debit }}"
+                            placeholder="0,00"
+                            style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; color: #059669; font-weight: 600; flex: 1;">
 
-                        <span
-                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
-                            ,00
-                        </span>
-
-                        <input type="hidden" name="saldo_awal_debit" value="{{ $debitVal }}">
+                        <input type="hidden" name="saldo_awal_debit" value="{{ $coa->saldo_awal_debit }}">
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label"
-                        style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
-                        Saldo Awal Kredit (Rp)
-                    </label>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600;">Saldo Awal Kredit (Rp)</label>
                     <div style="display: flex; align-items: stretch; width: 100%;">
-                        <input type="text" class="form-control money-format" value="{{ $displayKredit }}"
-                            placeholder="0"
-                            style="border-radius: 6px 0 0 6px; border: 1px solid #cbd5e1; border-right: none; padding: 0.5rem 0.75rem; color: #dc2626; font-weight: 600; flex: 1;">
+                        <input type="text" class="form-control money-format" value="{{ $coa->saldo_awal_kredit }}"
+                            placeholder="0,00"
+                            style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; color: #dc2626; font-weight: 600; flex: 1;">
 
-                        <span
-                            style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0 6px 6px 0; padding: 0.5rem 0.75rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center;">
-                            ,00
-                        </span>
-
-                        <input type="hidden" name="saldo_awal_kredit" value="{{ $kreditVal }}">
+                        <input type="hidden" name="saldo_awal_kredit" value="{{ $coa->saldo_awal_kredit }}">
                     </div>
                 </div>
 

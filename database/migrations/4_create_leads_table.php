@@ -19,7 +19,7 @@ return new class extends Migration
         $table->unsignedInteger('id_tipe_rumah_minat')->nullable();
         $table->foreign('id_tipe_rumah_minat')->references('id_tipe')->on('tipe_rumah');
 
-        $table->bigInteger('perkiraan_budget')->nullable();
+        $table->decimal('perkiraan_budget', 15, 2)->nullable();
 
         $table->enum('status_lead', ['Tidak Prospek', 'Cold Lead', 'Warm Lead', 'Hot Prospek', 'Gagal Closing'])->nullable();
 

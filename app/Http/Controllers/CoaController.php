@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Coa;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class CoaController extends Controller
 {
@@ -52,15 +53,18 @@ class CoaController extends Controller
             return redirect()->back()->withInput()->with('error', 'Pilih proyek aktif terlebih dahulu.');
         }
 
-        if ($tahun < date('Y') && auth()->role !== 'Super_Admin') {
+        if ($tahun < date('Y') && Auth::user()?->role !== 'Super_Admin') {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Hanya Super Admin yang diizinkan menambahkan data CoA untuk tahun-tahun sebelumnya.');
         }
 
+        $cleanDebit = str_replace(',', '.', str_replace('.', '', $request->saldo_awal_debit ?? '0'));
+        $cleanKredit = str_replace(',', '.', str_replace('.', '', $request->saldo_awal_kredit ?? '0'));
+
         $request->merge([
-            'saldo_awal_debit' => str_replace('.', '', $request->saldo_awal_debit ?? 0),
-            'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit ?? 0),
+            'saldo_awal_debit' => $cleanDebit,
+            'saldo_awal_kredit' => $cleanKredit,
         ]);
 
         $validated = $request->validate([
@@ -104,7 +108,8 @@ class CoaController extends Controller
     public function edit($id)
     {
         $coa = Coa::findOrFail($id);
-        $userRole = auth()->role;
+        $userRole = Auth::user()?->role;
+
         if ($userRole !== 'Super_Admin') {
             if ($userRole === 'Admin_Keuangan' && $coa->tahun < date('Y')) {
                 return redirect()->back()->with('error', 'Admin Keuangan tidak dapat mengedit CoA tahun sebelumnya.');
@@ -122,18 +127,14 @@ class CoaController extends Controller
         $tahun = $coa->tahun;
 
         $request->merge([
-            'saldo_awal_debit' => str_replace('.', '', $request->saldo_awal_debit ?: 0),
-            'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit ?: 0),
+            'saldo_awal_debit'  => parse_money($request->saldo_awal_debit),
+            'saldo_awal_kredit' => parse_money($request->saldo_awal_kredit),
         ]);
 
         $validated = $request->validate([
             'no_akun' => [
-                'required',
-                'max:20',
-                Rule::unique('coa', 'no_akun')
-                    ->where('project_id', $projectId)
-                    ->where('tahun', $tahun)
-                    ->ignore($id)
+                'required', 'max:20',
+                Rule::unique('coa', 'no_akun')->where('project_id', $projectId)->where('tahun', $tahun)->ignore($id)
             ],
             'kategori_akun'     => 'required|string|max:255',
             'nama_akun'         => 'required|string|max:255',
@@ -145,18 +146,19 @@ class CoaController extends Controller
 
         $debit = $validated['saldo_awal_debit'] ?? 0;
         $kredit = $validated['saldo_awal_kredit'] ?? 0;
-
         $validated['saldo_akhir'] = $debit - $kredit;
 
         $coa->update($validated);
 
-        return redirect()->route('coa.index', ['tahun' => $tahun])->with('success', 'Data Akun dan Saldo berhasil diperbarui!');
+        return redirect()->route('coa.index', ['tahun' => $tahun])
+                        ->with('success', 'Data Akun dan Saldo berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
         $coa = Coa::findOrFail($id);
-        $userRole = auth()->role;
+        $userRole = Auth::user()?->role;
+
         if ($userRole !== 'Super_Admin') {
             if ($userRole === 'Admin_Keuangan' && $coa->tahun < date('Y')) {
                 return redirect()->back()->with('error', 'Admin Keuangan tidak dapat menghapus CoA tahun sebelumnya.');

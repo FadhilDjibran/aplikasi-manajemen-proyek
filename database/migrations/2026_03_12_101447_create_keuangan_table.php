@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('keuangan', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('jurnal_ref')->nullable();
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
             $table->date('tanggal');
             $table->string('no_akun', 20);

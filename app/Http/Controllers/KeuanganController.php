@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Keuangan;
+use App\Models\TransaksiLead;
+use App\Models\Coa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class KeuanganController extends Controller
 {
@@ -18,16 +21,16 @@ class KeuanganController extends Controller
 
         $tahun = $request->input('tahun', date('Y'));
 
-        $pendingApprovalsCount = \App\Models\TransaksiLead::where('project_id', $projectId)
+        $pendingApprovalsCount = TransaksiLead::where('project_id', $projectId)
             ->where('status_keuangan', 'pending')
             ->count();
 
-        $coa = \App\Models\Coa::where('project_id', $projectId)
+        $coa = Coa::where('project_id', $projectId)
             ->where('tahun', $tahun)
             ->orderBy('no_akun', 'asc')
             ->get();
 
-        $query = \App\Models\Keuangan::with('coa')
+        $query = Keuangan::with('coa')
             ->where('project_id', $projectId)
             ->whereYear('tanggal', $tahun);
 
@@ -59,7 +62,7 @@ class KeuanganController extends Controller
     {
         $projectId = session('active_project_id');
 
-        $coa = \App\Models\Coa::where('project_id', $projectId)
+        $coa = Coa::where('project_id', $projectId)
                     ->orderBy('no_akun', 'asc')
                     ->get();
 
@@ -70,9 +73,15 @@ class KeuanganController extends Controller
     {
         $projectId = session('active_project_id');
 
+        $cleanMoney = function($val) {
+            if (!$val) return 0;
+            $cleaned = str_replace(',', '.', str_replace('.', '', $val));
+            return is_numeric($cleaned) ? $cleaned : 0;
+        };
+
         $request->merge([
-            'mutasi_masuk' => $request->mutasi_masuk ? str_replace('.', '', $request->mutasi_masuk) : 0,
-            'mutasi_keluar' => $request->mutasi_keluar ? str_replace('.', '', $request->mutasi_keluar) : 0,
+            'mutasi_masuk' => $cleanMoney($request->mutasi_masuk),
+            'mutasi_keluar' => $cleanMoney($request->mutasi_keluar),
         ]);
 
         $validated = $request->validate([
@@ -86,7 +95,7 @@ class KeuanganController extends Controller
             'bukti'            => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
+        if (!in_array(Auth::user()?->role, ['Super_Admin', 'Admin_Keuangan'])) {
             if (in_array($request->input, ['Kas Besar', 'Bank'])) {
                 return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki izin untuk menginput Kas Besar atau Bank.');
             }
@@ -123,13 +132,10 @@ class KeuanganController extends Controller
 
     public function createJurnal()
     {
-        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
-            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menambah Jurnal.');
-        }
 
         $projectId = session('active_project_id');
 
-        $coa = \App\Models\Coa::where('project_id', $projectId)
+        $coa = Coa::where('project_id', $projectId)
                     ->orderBy('no_akun', 'asc')
                     ->get();
 
@@ -138,15 +144,12 @@ class KeuanganController extends Controller
 
     public function storeJurnal(Request $request)
     {
-        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
-            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menambah Jurnal.');
-        }
-
         $projectId = session('active_project_id');
 
         $request->validate([
-            'tanggal'                  => 'required|date',
             'bukti'                    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'tanggal_array'            => 'required|array|min:2',
+            'tanggal_array.*'          => 'required|date',
             'no_akun_array'            => 'required|array|min:2',
             'no_akun_array.*'          => 'required|exists:coa,no_akun',
             'mutasi_debit_array'       => 'required|array',
@@ -154,13 +157,8 @@ class KeuanganController extends Controller
             'keterangan_array'         => 'required|array',
         ]);
 
-        $debitArray = array_map(function($val) {
-            return (float) str_replace('.', '', $val);
-        }, $request->mutasi_debit_array);
-
-        $kreditArray = array_map(function($val) {
-            return (float) str_replace('.', '', $val);
-        }, $request->mutasi_kredit_array);
+        $debitArray = array_map('parse_money', $request->mutasi_debit_array);
+        $kreditArray = array_map('parse_money', $request->mutasi_kredit_array);
 
         $totalDebit = array_sum($debitArray);
         $totalKredit = array_sum($kreditArray);
@@ -168,7 +166,7 @@ class KeuanganController extends Controller
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
             return back()->withInput()->with('error', 'GAGAL: Total Debit dan Kredit tidak Balance!');
         }
-        if ($totalDebit == 0 && $totalKredit == 0) {
+        if (round($totalDebit, 2) == 0 && round($totalKredit, 2) == 0) {
             return back()->withInput()->with('error', 'GAGAL: Nominal Jurnal tidak boleh 0!');
         }
 
@@ -178,14 +176,17 @@ class KeuanganController extends Controller
         }
 
         DB::transaction(function () use ($request, $projectId, $debitArray, $kreditArray, $buktiPath) {
+            $newJurnalRef = DB::table('keuangan')->max('jurnal_ref') + 1;
+
             foreach ($request->no_akun_array as $index => $akun) {
                 if ($debitArray[$index] == 0 && $kreditArray[$index] == 0) {
                     continue;
                 }
 
                 $transaksi = Keuangan::create([
+                    'jurnal_ref'       => $newJurnalRef,
                     'project_id'       => $projectId,
-                    'tanggal'          => $request->tanggal,
+                    'tanggal'          => $request->tanggal_array[$index],
                     'input'            => 'Jurnal',
                     'no_akun'          => $akun,
                     'jenis_penggunaan' => $request->jenis_penggunaan_array[$index] ?? null,
@@ -212,14 +213,13 @@ class KeuanganController extends Controller
         }
 
         $jurnalRows = Keuangan::where('project_id', $projectId)
-            ->where('tanggal', $ref->tanggal)
-            ->where('input', 'Jurnal')
-            ->where('keterangan', $ref->keterangan)
+            ->where('jurnal_ref', $ref->jurnal_ref)
             ->get();
 
-        $coa = \App\Models\Coa::where('project_id', $projectId)
+        $coa = Coa::where('project_id', $projectId)
             ->orderBy('no_akun', 'asc')
             ->get();
+
 
         return view('keuangan.edit_jurnal', compact('ref', 'jurnalRows', 'coa'));
     }
@@ -230,23 +230,23 @@ class KeuanganController extends Controller
         $projectId = session('active_project_id');
 
         $request->validate([
-            'tanggal'                  => 'required|date',
             'bukti'                    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'no_akun_array'            => 'required|array|min:2',
+            'tanggal_array'            => 'required|array|min:1',
+            'tanggal_array.*'          => 'required|date',
+            'no_akun_array'            => 'required|array|min:1',
             'no_akun_array.*'          => 'required|exists:coa,no_akun',
             'mutasi_debit_array'       => 'required|array',
             'mutasi_kredit_array'      => 'required|array',
-            'keterangan_array'         => 'required|array',
         ]);
 
-        $debitArray = array_map(function($val) { return (float) str_replace('.', '', $val); }, $request->mutasi_debit_array);
-        $kreditArray = array_map(function($val) { return (float) str_replace('.', '', $val); }, $request->mutasi_kredit_array);
+        $debitArray = array_map('parse_money', $request->mutasi_debit_array);
+        $kreditArray = array_map('parse_money', $request->mutasi_kredit_array);
 
         $totalDebit = array_sum($debitArray);
         $totalKredit = array_sum($kreditArray);
 
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
-            return back()->withInput()->with('error', 'GAGAL: Total Debit dan Kredit tidak Balance!');
+            return back()->withInput()->with('error', 'GAGAL: Total Debit dan Kredit Form tidak Balance!');
         }
 
         $buktiPath = $ref->bukti;
@@ -254,12 +254,12 @@ class KeuanganController extends Controller
             $buktiPath = $request->file('bukti')->store('bukti_transaksi', 'public');
         }
 
-        DB::transaction(function () use ($request, $projectId, $debitArray, $kreditArray, $buktiPath, $ref) {
+        $targetRef = $ref->jurnal_ref;
 
+        DB::beginTransaction();
+        try {
             $oldJurnalRows = Keuangan::where('project_id', $projectId)
-                ->where('tanggal', $ref->tanggal)
-                ->where('input', 'Jurnal')
-                ->where('keterangan', $request->keterangan_lama)
+                ->where('jurnal_ref', $targetRef)
                 ->get();
 
             foreach ($oldJurnalRows as $oldRow) {
@@ -271,8 +271,9 @@ class KeuanganController extends Controller
                 if ($debitArray[$index] == 0 && $kreditArray[$index] == 0) continue;
 
                 $transaksi = Keuangan::create([
+                    'jurnal_ref'       => $targetRef,
                     'project_id'       => $projectId,
-                    'tanggal'          => $request->tanggal,
+                    'tanggal'          => $request->tanggal_array[$index],
                     'input'            => 'Jurnal',
                     'no_akun'          => $akun,
                     'jenis_penggunaan' => $request->jenis_penggunaan_array[$index] ?? null,
@@ -284,9 +285,14 @@ class KeuanganController extends Controller
 
                 $this->adjustBalances($transaksi, 'apply');
             }
-        });
 
-        return redirect()->route('keuangan.index')->with('success', 'Jurnal Umum berhasil diperbarui dan saldo telah diseimbangkan!');
+            DB::commit();
+            return redirect()->route('keuangan.index')->with('success', 'Jurnal berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function show(string $id)
@@ -298,7 +304,7 @@ class KeuanganController extends Controller
         $item = Keuangan::findOrFail($id);
         $projectId = session('active_project_id');
 
-        $coa = \App\Models\Coa::where('project_id', $projectId)
+        $coa = Coa::where('project_id', $projectId)
                     ->orderBy('no_akun', 'asc')
                     ->get();
 
@@ -310,12 +316,18 @@ class KeuanganController extends Controller
         $transaksi = Keuangan::findOrFail($id);
         $projectId = session('active_project_id');
 
-        $cleanMasuk = str_replace('.', '', $request->mutasi_masuk);
-        $cleanKeluar = str_replace('.', '', $request->mutasi_keluar);
+        $cleanMoney = function($val) {
+            if (!$val) return 0;
+            $cleaned = str_replace(',', '.', str_replace('.', '', $val));
+            return is_numeric($cleaned) ? (float) $cleaned : 0;
+        };
+
+        $cleanMasuk = $cleanMoney($request->mutasi_masuk);
+        $cleanKeluar = $cleanMoney($request->mutasi_keluar);
 
         $request->merge([
-            'mutasi_masuk'  => $cleanMasuk ?: 0,
-            'mutasi_keluar' => $cleanKeluar ?: 0,
+            'mutasi_masuk'  => $cleanMasuk,
+            'mutasi_keluar' => $cleanKeluar,
         ]);
 
         $validated = $request->validate([
@@ -329,25 +341,19 @@ class KeuanganController extends Controller
             'bukti'            => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        if (!in_array(auth()->role, ['Super_Admin', 'Admin_Keuangan'])) {
+        if (!in_array(Auth::user()?->role, ['Super_Admin', 'Admin_Keuangan'])) {
             if (in_array($request->input, ['Kas Besar', 'Bank'])) {
-                return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki izin untuk menginput Kas Besar atau Bank.');
+                return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki izin untuk mengubah Kas Besar atau Bank.');
             }
         }
 
         $this->adjustBalances($transaksi, 'reverse');
 
-        $mutasiMasuk = $request->mutasi_masuk ?? 0;
-        $mutasiKeluar = $request->mutasi_keluar ?? 0;
-
         if ($request->hasFile('bukti')) {
             $validated['bukti'] = $request->file('bukti')->store('bukti_transaksi', 'public');
         }
 
-        $transaksi->update(array_merge($validated, [
-            'mutasi_masuk' => $mutasiMasuk,
-            'mutasi_keluar' => $mutasiKeluar,
-        ]));
+        $transaksi->update($validated);
 
         $this->adjustBalances($transaksi, 'apply');
 
@@ -358,11 +364,10 @@ class KeuanganController extends Controller
     {
         $transaksi = Keuangan::findOrFail($id);
 
-        if ($transaksi->input === 'Jurnal') {
+        if ($transaksi->input === 'Jurnal' && !is_null($transaksi->jurnal_ref)) {
+
             $paketJurnal = Keuangan::where('project_id', $transaksi->project_id)
-                ->where('tanggal', $transaksi->tanggal)
-                ->where('input', 'Jurnal')
-                ->where('keterangan', $transaksi->keterangan)
+                ->where('jurnal_ref', $transaksi->jurnal_ref)
                 ->get();
 
             foreach ($paketJurnal as $item) {
@@ -370,7 +375,7 @@ class KeuanganController extends Controller
                 $item->delete();
             }
 
-            return redirect()->route('keuangan.index')->with('success', 'Satu paket Jurnal Umum berhasil dihapus dan saldo diseimbangkan.');
+            return redirect()->route('keuangan.index')->with('success', 'Satu paket Jurnal Umum (Ref: #' . $transaksi->jurnal_ref . ') berhasil dihapus dan saldo telah disesuaikan.');
         }
 
         $this->adjustBalances($transaksi, 'reverse');
@@ -391,7 +396,7 @@ class KeuanganController extends Controller
         }
 
         if ($transaksi->input !== 'Jurnal') {
-            $dompet = \App\Models\Coa::where('project_id', $projectId)
+            $dompet = Coa::where('project_id', $projectId)
                 ->where('nama_akun', 'LIKE', '%' . $transaksi->input . '%')
                 ->first();
 
@@ -402,7 +407,7 @@ class KeuanganController extends Controller
             }
         }
 
-        $lawan = \App\Models\Coa::where('project_id', $projectId)
+        $lawan = Coa::where('project_id', $projectId)
             ->where('no_akun', $transaksi->no_akun)
             ->first();
 
@@ -421,7 +426,7 @@ class KeuanganController extends Controller
     {
         $projectId = session('active_project_id');
 
-        $pendingTransactions = \App\Models\TransaksiLead::with('lead')
+        $pendingTransactions = TransaksiLead::with('lead')
             ->where('project_id', $projectId)
             ->where('status_keuangan', 'pending')
             ->orderBy('created_at', 'desc')
@@ -432,10 +437,10 @@ class KeuanganController extends Controller
 
     public function approveForm($id)
     {
-        $transaksiLead = \App\Models\TransaksiLead::with('lead')->findOrFail($id);
+        $transaksiLead = TransaksiLead::with('lead')->findOrFail($id);
         $projectId = session('active_project_id');
 
-        $coa = \App\Models\Coa::where('project_id', $projectId)
+        $coa = Coa::where('project_id', $projectId)
                 ->orderBy('no_akun', 'asc')
                 ->get();
 
@@ -444,7 +449,7 @@ class KeuanganController extends Controller
 
     public function processApprove(Request $request, $id)
     {
-        $transaksiLead = \App\Models\TransaksiLead::findOrFail($id);
+        $transaksiLead = TransaksiLead::findOrFail($id);
         $projectId = session('active_project_id');
 
         $validated = $request->validate([
@@ -462,7 +467,7 @@ class KeuanganController extends Controller
             $buktiPath = $request->file('bukti')->store('bukti_transaksi', 'public');
         }
 
-        $transaksiKeuangan = \App\Models\Keuangan::create([
+        $transaksiKeuangan = Keuangan::create([
             'project_id'       => $projectId,
             'tanggal'          => $validated['tanggal'],
             'input'            => $validated['input'],

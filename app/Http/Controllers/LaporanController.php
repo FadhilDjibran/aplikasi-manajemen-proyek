@@ -181,7 +181,7 @@ class LaporanController extends Controller
     }
 
 
-    private function getNeracaData(Request $request)
+   private function getNeracaData(Request $request)
     {
         $projectId = session('active_project_id');
         if (!$projectId) return ['error' => 'Pilih proyek terlebih dahulu.'];
@@ -251,12 +251,19 @@ class LaporanController extends Controller
                 $laporan[$group][$no]['saldo'] = $saldo;
             }
 
+            $tal = array_sum(array_column($laporan['aset_lancar'], 'saldo'));
+            $tatl = array_sum(array_column($laporan['aset_tidak_lancar'], 'saldo'));
+            $th = array_sum(array_column($laporan['hutang'], 'saldo'));
+            $te = array_sum(array_column($laporan['ekuitas'], 'saldo'));
+
             return [
                 'data' => $laporan,
-                'totalAsetLancar' => array_sum(array_column($laporan['aset_lancar'], 'saldo')),
-                'totalAsetTidakLancar' => array_sum(array_column($laporan['aset_tidak_lancar'], 'saldo')),
-                'totalHutang' => array_sum(array_column($laporan['hutang'], 'saldo')),
-                'totalEkuitas' => array_sum(array_column($laporan['ekuitas'], 'saldo')),
+                'totalAsetLancar' => $tal,
+                'totalAsetTidakLancar' => $tatl,
+                'totalAset' => $tal + $tatl,
+                'totalHutang' => $th,
+                'totalEkuitas' => $te,
+                'totalPasiva' => $th + $te,
             ];
         };
 
@@ -264,10 +271,10 @@ class LaporanController extends Controller
         $neracaLalu = $process($tahunLalu);
 
         return [
-            'neracaSekarang' => $neracaSekarang, 'neracaLalu' => $neracaLalu,
-            'tahunSekarang' => $tahunSekarang, 'tahunLalu' => $tahunLalu,
-            'totalAset' => $neracaSekarang['totalAsetLancar'] + $neracaSekarang['totalAsetTidakLancar'],
-            'totalPasiva' => $neracaSekarang['totalHutang'] + $neracaSekarang['totalEkuitas']
+            'neracaSekarang' => $neracaSekarang,
+            'neracaLalu' => $neracaLalu,
+            'tahunSekarang' => $tahunSekarang,
+            'tahunLalu' => $tahunLalu,
         ];
     }
 

@@ -10,7 +10,7 @@
     </div>
 
     <div class="card"
-        style="width: 100%; padding: 2.5rem; max-width: 965px; margin: 0 auto; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: visible;">
+        style="width: 100%; padding: 2.5rem; max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: visible;">
 
         @if (session('error'))
             <div
@@ -30,16 +30,7 @@
                 Informasi Jurnal Umum
             </h4>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-                <div class="form-group">
-                    <label class="form-label"
-                        style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
-                        Tanggal Transaksi <span style="color:red">*</span>
-                    </label>
-                    <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', date('Y-m-d')) }}"
-                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;" required>
-                </div>
-
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                 <div class="form-group">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
@@ -59,15 +50,17 @@
                 <table style="width: 100%; border-collapse: collapse; table-layout: fixed;" id="jurnal-table">
                     <thead>
                         <tr style="background: #f8fafc; border-bottom: 2px solid #cbd5e1;">
-                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 22%;">Akun
+                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 14%;">
+                                Tanggal <span style="color:red">*</span></th>
+                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 18%;">Akun
                                 (CoA) <span style="color:red">*</span></th>
-                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 18%;">Jenis
+                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 14%;">Jenis
                                 Penggunaan</th>
-                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 22%;">
+                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 18%;">
                                 Keterangan <span style="color:red">*</span></th>
-                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 16%;">
+                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 15%;">
                                 Debit (Rp)</th>
-                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 16%;">
+                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 15%;">
                                 Kredit (Rp)</th>
                             <th style="padding: 10px; text-align: center; color: #475569; font-weight: 700; width: 6%;">#
                             </th>
@@ -76,6 +69,12 @@
                     <tbody id="jurnal-body">
                         @for ($i = 0; $i < 2; $i++)
                             <tr class="jurnal-row" style="border-bottom: 1px solid #e2e8f0;">
+                                <td style="padding: 8px;">
+                                    <input type="date" name="tanggal_array[]" class="form-control"
+                                        value="{{ date('Y-m-d') }}"
+                                        style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;"
+                                        required>
+                                </td>
                                 <td style="padding: 8px;">
                                     <select name="no_akun_array[]" class="form-control coa-select" required>
                                         <option value="">-- Pilih Akun --</option>
@@ -92,7 +91,7 @@
                                 </td>
                                 <td style="padding: 8px;">
                                     <input type="text" name="jenis_penggunaan_array[]" class="form-control"
-                                        placeholder="Contoh: Operasional"
+                                        placeholder="Opsional..."
                                         style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;">
                                 </td>
                                 <td style="padding: 8px;">
@@ -103,13 +102,13 @@
                                 </td>
                                 <td style="padding: 8px;">
                                     <input type="text" name="mutasi_debit_array[]" class="form-control input-debit"
-                                        value="0"
+                                        value="0,00"
                                         style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #059669; font-weight: 600; font-size: 0.9rem;"
                                         required>
                                 </td>
                                 <td style="padding: 8px;">
                                     <input type="text" name="mutasi_kredit_array[]" class="form-control input-kredit"
-                                        value="0"
+                                        value="0,00"
                                         style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #dc2626; font-weight: 600; font-size: 0.9rem;"
                                         required>
                                 </td>
@@ -169,6 +168,11 @@
     <template id="row-template">
         <tr class="jurnal-row" style="border-bottom: 1px solid #e2e8f0;">
             <td style="padding: 8px;">
+                <input type="date" name="tanggal_array[]" class="form-control"
+                    style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;"
+                    required>
+            </td>
+            <td style="padding: 8px;">
                 <select name="no_akun_array[]" class="form-control coa-select-new" required>
                     <option value="">-- Pilih Akun --</option>
                     @foreach ($groupedCoa as $kategori => $akunList)
@@ -182,8 +186,7 @@
                 </select>
             </td>
             <td style="padding: 8px;">
-                <input type="text" name="jenis_penggunaan_array[]" class="form-control"
-                    placeholder="Contoh: Operasional"
+                <input type="text" name="jenis_penggunaan_array[]" class="form-control" placeholder="Opsional..."
                     style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;">
             </td>
             <td style="padding: 8px;">
@@ -209,143 +212,6 @@
     </template>
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            function initTomSelect(element) {
-                if (element.tomselect) return;
-
-                new TomSelect(element, {
-                    create: false,
-                    sortField: {
-                        field: "text",
-                        direction: "asc"
-                    },
-                    maxOptions: 1000,
-                    dropdownParent: 'body'
-                });
-            }
-
-            document.querySelectorAll('.coa-select').forEach(el => initTomSelect(el));
-
-            function formatMoney(num) {
-                let str = num.toString().replace(/[^,\d]/g, '');
-                let split = str.split(',');
-                let sisa = split[0].length % 3;
-                let rupiah = split[0].substr(0, sisa);
-                let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
-                if (ribuan) {
-                    let separator = sisa ? '.' : '';
-                    rupiah += separator + ribuan.join('.');
-                }
-                return rupiah || '0';
-            }
-
-            function cleanMoney(str) {
-                if (!str) return 0;
-                return parseFloat(str.replace(/\./g, '')) || 0;
-            }
-
-            function calculateBalance() {
-                let totalDebit = 0;
-                let totalKredit = 0;
-
-                document.querySelectorAll('.input-debit').forEach(input => {
-                    totalDebit += cleanMoney(input.value);
-                });
-
-                document.querySelectorAll('.input-kredit').forEach(input => {
-                    totalKredit += cleanMoney(input.value);
-                });
-
-                let selisih = Math.abs(totalDebit - totalKredit);
-
-                document.getElementById('calc-debit').textContent = 'Rp ' + formatMoney(totalDebit);
-                document.getElementById('calc-kredit').textContent = 'Rp ' + formatMoney(totalKredit);
-                document.getElementById('calc-selisih').textContent = 'Rp ' + formatMoney(selisih);
-
-                const badge = document.getElementById('badge-status');
-                const btnSubmit = document.getElementById('btn-submit');
-                const selisihEl = document.getElementById('calc-selisih');
-
-                if (totalDebit === 0 && totalKredit === 0) {
-                    badge.textContent = "KOSONG";
-                    badge.style.background = "
-                    badge.style.color = "
-                    selisihEl.style.color = "
-                    btnSubmit.disabled = true;
-                    btnSubmit.style.opacity = "0.5";
-                } else if (selisih === 0) {
-                    badge.textContent = "SEIMBANG";
-                    badge.style.background = "
-                    badge.style.color = "
-                    selisihEl.style.color = "
-                    btnSubmit.disabled = false;
-                    btnSubmit.style.opacity = "1";
-                    btnSubmit.innerHTML =
-                        '<i class="fas fa-save" style="margin-right: 5px;"></i> Simpan Jurnal Umum';
-                } else {
-                    badge.textContent = "TIDAK SEIMBANG";
-                    badge.style.background = "
-                    badge.style.color = "
-                    selisihEl.style.color = "
-                    btnSubmit.disabled = true;
-                    btnSubmit.style.opacity = "0.5";
-                    btnSubmit.innerHTML =
-                        '<i class="fas fa-lock" style="margin-right: 5px;"></i> Balance Harus Rp 0';
-                }
-            }
-
-            document.getElementById('jurnal-body').addEventListener('input', function(e) {
-                if (e.target.classList.contains('input-debit') || e.target.classList.contains(
-                        'input-kredit')) {
-                    e.target.value = formatMoney(e.target.value);
-                    calculateBalance();
-                }
-            });
-
-            document.getElementById('btn-add-row').addEventListener('click', function() {
-                const template = document.getElementById('row-template');
-                const clone = template.content.cloneNode(true);
-                const body = document.getElementById('jurnal-body');
-
-                const rows = body.querySelectorAll('.jurnal-row');
-                if (rows.length > 0) {
-                    const lastRow = rows[rows.length - 1];
-                    const prevPenggunaan = lastRow.querySelector('input[name="jenis_penggunaan_array[]"]')
-                        .value;
-                    const prevKeterangan = lastRow.querySelector('input[name="keterangan_array[]"]').value;
-
-                    clone.querySelector('input[name="jenis_penggunaan_array[]"]').value = prevPenggunaan;
-                    clone.querySelector('input[name="keterangan_array[]"]').value = prevKeterangan;
-                }
-
-                body.appendChild(clone);
-
-                const newSelect = body.lastElementChild.querySelector('.coa-select-new');
-                if (newSelect) {
-                    newSelect.classList.remove('coa-select-new');
-                    newSelect.classList.add('coa-select');
-                    initTomSelect(newSelect);
-                }
-            });
-
-            document.getElementById('jurnal-body').addEventListener('click', function(e) {
-                const btnRemove = e.target.closest('.btn-remove-row');
-
-                if (btnRemove) {
-                    const rowCount = document.querySelectorAll('.jurnal-row').length;
-                    if (rowCount > 1) {
-                        btnRemove.closest('tr').remove();
-                        calculateBalance();
-                    } else {
-                        alert("Jurnal minimal harus memiliki 1 baris transaksi.");
-                    }
-                }
-            });
-
-            calculateBalance();
-        });
-    </script>
+    <script src="{{ asset('js/money-format.js') }}"></script>
+    <script src="{{ asset('js/jurnal-handler.js') }}"></script>
 @endsection

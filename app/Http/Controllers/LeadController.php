@@ -93,11 +93,16 @@ class LeadController extends Controller
 
     public function store(Request $request)
     {
+
+        $request->merge([
+            'perkiraan_budget' => parse_money($request->perkiraan_budget),
+        ]);
+
         $request->validate([
             'nama_lead'         => 'required|string|max:100',
             'no_whatsapp'       => 'required|string|max:20',
             'sumber_lead'       => 'required',
-            'perkiraan_budget'  => 'nullable|string',
+            'perkiraan_budget'  => 'nullable|numeric',
         ]);
 
         $lastLead = Lead::select('id_lead')
@@ -106,14 +111,7 @@ class LeadController extends Controller
         $number = $lastLead ? ((int)substr($lastLead->id_lead, 1)) + 1 : 1;
         $newId = 'L' . str_pad($number, 3, '0', STR_PAD_LEFT);
 
-        $cleanBudget = $request->perkiraan_budget
-            ? str_replace('.', '', $request->perkiraan_budget)
-            : null;
-
-        $sumberLead = $request->sumber_lead;
-        if ($sumberLead === 'Lainnya') {
-            $sumberLead = $request->sumber_lead_custom;
-        }
+        $sumberLead = $request->sumber_lead === 'Lainnya' ? $request->sumber_lead_custom : $request->sumber_lead;
 
         Lead::create([
             'id_lead'               => $newId,
@@ -126,20 +124,17 @@ class LeadController extends Controller
             'rencana_pembayaran'    => $request->rencana_pembayaran,
             'catatan'               => $request->catatan,
             'status_lead'           => 'Cold Lead',
-            'tgl_masuk'             => $request->tgl_masuk ? $request->tgl_masuk : now(),
+            'tgl_masuk'             => $request->tgl_masuk ?: now(),
             'alamat'                => $request->alamat,
             'status_pekerjaan'      => $request->status_pekerjaan,
-            'perkiraan_budget'      => $cleanBudget,
+            'perkiraan_budget'      => $request->perkiraan_budget,
             'id_pic'                => $request->id_pic,
         ]);
 
-        $pesanSukses = "Lead atas nama {$request->nama_lead} berhasil dibuat dengan status Cold Lead.";
-
-        if ($request->action === 'save_and_new') {
-            return redirect()->route('leads.create')->with('success', $pesanSukses);
-        }
-
-        return redirect()->route('leads.index')->with('success', $pesanSukses);
+        $pesanSukses = "Lead atas nama {$request->nama_lead} berhasil dibuat.";
+        return ($request->action === 'save_and_new')
+            ? redirect()->route('leads.create')->with('success', $pesanSukses)
+            : redirect()->route('leads.index')->with('success', $pesanSukses);
     }
 
     public function edit($id)
@@ -161,10 +156,15 @@ class LeadController extends Controller
         $oldStatus = $lead->status_lead;
         $newStatus = $request->status_lead;
 
+        $request->merge([
+            'perkiraan_budget' => parse_money($request->perkiraan_budget),
+        ]);
+
         $request->validate([
-            'status_lead' => 'required',
-            'alasan_gagal' => 'nullable|string',
-            'catatan_gagal' => 'nullable|string',
+        'status_lead' => 'required',
+        'alasan_gagal' => 'nullable|string',
+        'catatan_gagal' => 'nullable|string',
+        'perkiraan_budget' => 'nullable|numeric',
         ]);
 
         $data = $request->all();
@@ -180,12 +180,6 @@ class LeadController extends Controller
                 $sumberLead = $request->sumber_lead_custom;
             }
             $data['sumber_lead'] = $sumberLead;
-        }
-
-        if ($request->has('perkiraan_budget')) {
-            $data['perkiraan_budget'] = $request->perkiraan_budget
-                ? str_replace('.', '', $request->perkiraan_budget)
-                : null;
         }
 
         if ($newStatus == 'Gagal Closing') {
@@ -212,13 +206,13 @@ class LeadController extends Controller
 
         if ($newStatus == 'Warm Lead' && $oldStatus != 'Warm Lead') {
             $userId = Auth::id();
-            $activePic = \App\Models\PicMarketing::where('user_id', $userId)->first();
+            $activePic = PicMarketing::where('user_id', $userId)->first();
 
             if ($activePic) {
                 $currentPicId = $activePic->id_pic;
                 $lead->update(['id_pic' => $currentPicId]);
 
-                \App\Models\FollowUp::create([
+                FollowUp::create([
                     'id_lead'                  => $lead->id_lead,
                     'project_id'               => $lead->project_id,
                     'id_pic'                   => $currentPicId,

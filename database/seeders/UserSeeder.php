@@ -4,12 +4,13 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class UserSeeder extends Seeder
 {
         public function run()
         {
-            \App\Models\User::create([
+            User::create([
                 'name' => 'Super Admin Safira',
                 'email' => 'superadmin@safira.com',
                 'password' => Hash::make('pass123'),

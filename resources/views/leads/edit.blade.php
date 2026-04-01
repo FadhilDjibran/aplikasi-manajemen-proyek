@@ -186,10 +186,16 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Perkiraan Budget (Rp)</label>
-                    <input type="text" name="perkiraan_budget" class="form-control money-format"
-                        placeholder="Masukkan Budget..."
-                        value="{{ $lead->perkiraan_budget ? number_format($lead->perkiraan_budget, 0, ',', '.') : '' }}">
+                    <label class="form-label" style="font-weight: 600; color: #475569;">Perkiraan Budget (Rp)</label>
+                    <div style="display: flex; align-items: stretch; width: 100%;">
+                        <input type="text" class="form-control money-format"
+                            value="{{ old('perkiraan_budget') ? number_format((float) old('perkiraan_budget'), 2, ',', '.') : ($lead->perkiraan_budget != 0 ? number_format($lead->perkiraan_budget, 2, ',', '.') : '') }}"
+                            placeholder="0,00"
+                            style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; font-weight: 600; flex: 1;">
+
+                        <input type="hidden" name="perkiraan_budget"
+                            value="{{ old('perkiraan_budget', $lead->perkiraan_budget) }}">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Rencana Pembayaran</label>

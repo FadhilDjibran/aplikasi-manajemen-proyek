@@ -15,7 +15,7 @@ return new class extends Migration
         $table->foreign('id_lead')->references('id_lead')->on('leads')->cascadeOnDelete();
 
         $table->enum('jenis_pembayaran', ['Booking', 'DP', 'Lunas'])->nullable();
-        $table->bigInteger('nominal')->nullable();
+        $table->decimal('nominal', 15, 2)->nullable();
         $table->date('tgl_pembayaran')->nullable();
         $table->text('keterangan')->nullable();
         $table->timestamps();

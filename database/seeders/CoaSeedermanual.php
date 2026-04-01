@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Coa;
+use App\Models\Project;
 use Illuminate\Support\Facades\Schema;
 
 class CoaSeeder extends Seeder
@@ -14,7 +15,7 @@ class CoaSeeder extends Seeder
 
         Coa::truncate();
 
-        \App\Models\Project::firstOrCreate(
+        Project::firstOrCreate(
             ['id' => 1],
             ['nama_project' => 'Proyek Utama']
         );
