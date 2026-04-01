@@ -121,12 +121,12 @@
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Mutasi Masuk (Rp)
                     </label>
-                    <div style="display: flex; align-items: stretch; width: 100%;">
-                        <input type="text" name="mutasi_masuk" class="form-control money-format"
-                            value="{{ old('mutasi_masuk', $item->mutasi_masuk != 0 ? number_format($item->mutasi_masuk, 2, ',', '.') : '') }}"
-                            placeholder="0,00"
+                    <div style="display: flex; align-items: stretch; width: 100%; position: relative;">
+                        <input type="text" class="form-control money-format"
+                            value="{{ old('mutasi_masuk', $item->mutasi_masuk) }}" placeholder="0,00"
                             style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; color: #059669; font-weight: 600; flex: 1;">
 
+                        <input type="hidden" name="mutasi_masuk" value="{{ old('mutasi_masuk', $item->mutasi_masuk) }}">
                     </div>
                 </div>
 
@@ -135,12 +135,13 @@
                         style="font-weight: 700; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Mutasi Keluar (Rp)
                     </label>
-                    <div style="display: flex; align-items: stretch; width: 100%;">
-                        <input type="text" name="mutasi_keluar" class="form-control money-format"
-                            value="{{ old('mutasi_keluar', $item->mutasi_keluar != 0 ? number_format($item->mutasi_keluar, 2, ',', '.') : '') }}"
-                            placeholder="0,00"
+                    <div style="display: flex; align-items: stretch; width: 100%; position: relative;">
+                        <input type="text" class="form-control money-format"
+                            value="{{ old('mutasi_keluar', $item->mutasi_keluar) }}" placeholder="0,00"
                             style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; color: #dc2626; font-weight: 600; flex: 1;">
 
+                        <input type="hidden" name="mutasi_keluar"
+                            value="{{ old('mutasi_keluar', $item->mutasi_keluar) }}">
                     </div>
                 </div>
 

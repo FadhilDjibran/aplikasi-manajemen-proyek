@@ -14,17 +14,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.coa-select').forEach(el => initTomSelect(el));
 
-    // SMART PARSER JS: Menghindari penghapusan titik jika itu adalah desimal
     function cleanMoney(val) {
         if (!val) return 0;
-        let str = val.toString();
+        let str = val.toString().trim();
 
         if (str.includes(',')) {
-            // Format IDR: 1.200,50 -> 1200.50
             str = str.replace(/\./g, '').replace(',', '.');
-        } else if (str.split('.').length > 2) {
-            // Format Ribuan: 1.000.000 -> 1000000
-            str = str.replace(/\./g, '');
+        } else {
+            let dotCount = (str.match(/\./g) || []).length;
+
+            if (dotCount > 1) {
+                str = str.replace(/\./g, '');
+            } else if (dotCount === 1) {
+                let parts = str.split('.');
+                if (parts[1].length === 3) {
+                    str = str.replace(/\./g, '');
+                }
+            }
         }
 
         let parsed = parseFloat(str);
@@ -59,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let totalDebit = Number(baseDebit) + Number(totalFormDebit);
         let totalKredit = Number(baseKredit) + Number(totalFormKredit);
 
-        // Atasi Javascript Floating Point Error
         let selisih = Math.abs(totalDebit - totalKredit);
 
         const calcDebitEl = document.getElementById('calc-debit');
@@ -75,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!badge || !btnSubmit) return;
 
-        // Validasi tombol dengan toleransi 0.01 (untuk sen)
         if (totalDebit === 0 && totalKredit === 0) {
             badge.textContent = "KOSONG";
             badge.style.background = "#e2e8f0";
@@ -85,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnSubmit.disabled = true;
             btnSubmit.style.opacity = "0.5";
 
-        } else if (selisih < 0.01) { // Ganti selisih === 0 menjadi selisih < 0.01
+        } else if (selisih < 0.01) {
             badge.textContent = "SEIMBANG (READY)";
             badge.style.background = "#d1fae5";
             badge.style.color = "#065f46";
@@ -105,25 +109,66 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function formatToDisplay(val) {
+        if (!val && val !== 0 && val !== '0') return '';
+        let cleaned = cleanMoney(val);
+        return cleaned.toLocaleString('id-ID', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
     document.body.addEventListener('input', function (e) {
-        if (e.target.classList.contains('input-debit') || e.target.classList.contains('input-kredit')) {
-            if (typeof moneyFormat === 'function') {
-                let cursorPosition = e.target.selectionStart;
-                let originalLength = e.target.value.length;
+        if (e.target.classList.contains('input-debit') || e.target.classList.contains('input-kredit') || e.target.classList.contains('money-format')) {
 
-                e.target.value = moneyFormat(e.target.value);
+            let cursorPosition = e.target.selectionStart;
+            let originalLength = e.target.value.length;
 
-                let newLength = e.target.value.length;
-                cursorPosition = cursorPosition + (newLength - originalLength);
-                e.target.setSelectionRange(cursorPosition, cursorPosition);
+            let rawValue = e.target.value.replace(/[^0-9,]/g, '');
 
-                // Sinkronkan hidden input jika ada di dalam table (opsional pengaman)
-                let hiddenInput = e.target.parentElement.querySelector('input[type="hidden"]');
-                if (hiddenInput) {
-                    hiddenInput.value = cleanMoney(e.target.value);
-                }
+            let parts = rawValue.split(',');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            let formatted = parts[1] !== undefined ? parts[0] + ',' + parts[1].substring(0, 2) : parts[0];
+
+            e.target.value = formatted;
+
+            let newLength = e.target.value.length;
+            cursorPosition = cursorPosition + (newLength - originalLength);
+            e.target.setSelectionRange(cursorPosition, cursorPosition);
+
+            let hiddenInput = e.target.parentElement.querySelector('input[type="hidden"]');
+            if (hiddenInput) {
+                hiddenInput.value = cleanMoney(e.target.value);
             }
+
             calculateBalance();
+        }
+    });
+
+    document.body.addEventListener('blur', function (e) {
+        if (e.target.classList.contains('input-debit') || e.target.classList.contains('input-kredit') || e.target.classList.contains('money-format')) {
+
+            let finalValue = formatToDisplay(e.target.value);
+            e.target.value = finalValue;
+
+            let hiddenInput = e.target.parentElement.querySelector('input[type="hidden"]');
+            if (hiddenInput) {
+                hiddenInput.value = cleanMoney(finalValue);
+            }
+
+            calculateBalance();
+        }
+    }, true);
+
+    document.querySelectorAll('.input-debit, .input-kredit, .money-format').forEach(function (input) {
+        if (input.value) {
+            let finalValue = formatToDisplay(input.value);
+            input.value = finalValue;
+
+            let hiddenInput = input.parentElement.querySelector('input[type="hidden"]');
+            if (hiddenInput) {
+                hiddenInput.value = cleanMoney(finalValue);
+            }
         }
     });
 

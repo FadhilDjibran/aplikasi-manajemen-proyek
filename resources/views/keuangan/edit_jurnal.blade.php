@@ -113,18 +113,27 @@
                                         required>
                                 </td>
                                 <td style="padding: 8px;">
-                                    <input type="text" name="mutasi_debit_array[]"
-                                        class="form-control input-debit money-format"
-                                        value="{{ $row->mutasi_masuk != 0 ? number_format($row->mutasi_masuk, 2, ',', '.') : '' }}"
-                                        style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #059669; font-weight: 600; font-size: 0.9rem;"
-                                        required>
+                                    <div style="position: relative;">
+                                        <input type="text" class="form-control input-debit money-format"
+                                            value="{{ old('mutasi_debit_array.' . $loop->index, $row->mutasi_masuk) }}"
+                                            style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #059669; font-weight: 600; font-size: 0.9rem;"
+                                            placeholder="0,00" required>
+
+                                        <input type="hidden" name="mutasi_debit_array[]"
+                                            value="{{ old('mutasi_debit_array.' . $loop->index, $row->mutasi_masuk) }}">
+                                    </div>
                                 </td>
+
                                 <td style="padding: 8px;">
-                                    <input type="text" name="mutasi_kredit_array[]"
-                                        class="form-control input-kredit money-format"
-                                        value="{{ $row->mutasi_keluar != 0 ? number_format($row->mutasi_keluar, 2, ',', '.') : '' }}"
-                                        style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #dc2626; font-weight: 600; font-size: 0.9rem;"
-                                        required>
+                                    <div style="position: relative;">
+                                        <input type="text" class="form-control input-kredit money-format"
+                                            value="{{ old('mutasi_kredit_array.' . $loop->index, $row->mutasi_keluar) }}"
+                                            style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #dc2626; font-weight: 600; font-size: 0.9rem;"
+                                            placeholder="0,00" required>
+
+                                        <input type="hidden" name="mutasi_kredit_array[]"
+                                            value="{{ old('mutasi_kredit_array.' . $loop->index, $row->mutasi_keluar) }}">
+                                    </div>
                                 </td>
                                 <td style="padding: 8px; text-align: center;">
                                     <button type="button" class="btn-remove-row"
