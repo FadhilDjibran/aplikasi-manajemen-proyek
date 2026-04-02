@@ -41,14 +41,15 @@
                 Informasi Transaksi
             </h4>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="transaction-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
 
                 <div class="form-group">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Tanggal Transaksi <span style="color:red">*</span>
                     </label>
-                    <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', date('Y-m-d')) }}"
+                    <input type="date" name="tanggal" id="tanggal_transaksi" class="form-control date-trigger-coa"
+                        value="{{ old('tanggal', date('Y-m-d')) }}"
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;" required>
                 </div>
 
@@ -57,21 +58,27 @@
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Tipe Input <span style="color:red">*</span>
                     </label>
-                    <select name="input" class="form-control"
+                    <select name="input" id="tipe_input" class="form-control"
+                        data-saldo-url="{{ route('keuangan.get-saldo') }}"
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; cursor: pointer;"
                         required>
                         <option value="">-- Pilih Tipe Input --</option>
-
-                        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
-                            <option value="Kas Besar" {{ old('input') == 'Kas Besar' ? 'selected' : '' }}>Kas Besar</option>
-                        @endif
-
-                        <option value="Kas Kecil" {{ old('input') == 'Kas Kecil' ? 'selected' : '' }}>Kas Kecil</option>
-
                         @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
                             <option value="Bank" {{ old('input') == 'Bank' ? 'selected' : '' }}>Bank</option>
                         @endif
+                        @if (in_array(auth()->user()->role, ['Super_Admin', 'Admin_Keuangan']))
+                            <option value="Kas Besar" {{ old('input') == 'Kas Besar' ? 'selected' : '' }}>Kas Besar</option>
+                        @endif
+                        <option value="Kas Kecil" {{ old('input') == 'Kas Kecil' ? 'selected' : '' }}>Kas Kecil</option>
                     </select>
+
+                    <div id="saldo-container"
+                        style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <span style="font-size: 0.85rem; color: #475569; font-weight: 600;">Saldo Saat Ini: </span>
+                        <span id="saldo-value" style="font-size: 1rem; color: #0f172a; font-weight: 800; float: right;">
+                            Rp 0,00
+                        </span>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1rem;">
@@ -80,11 +87,17 @@
                         PILIH AKUN (COA) <span style="color:red">*</span>
                     </label>
 
-                    <select name="no_akun" id="select-coa" class="form-control" required>
+                    <select name="no_akun" id="select-coa" class="form-control coa-select-dynamic"
+                        data-coa-url="{{ route('keuangan.get-coa') }}" required>
                         <option value="">-- Cari atau Pilih Akun --</option>
 
                         @php
-                            $groupedCoa = isset($coa) ? $coa->unique('no_akun')->groupBy('kategori_akun') : collect();
+                            // Ambil tahun dari input tanggal lama (jika ada error), atau tahun saat ini
+                            $tanggalAwal = old('tanggal', date('Y-m-d'));
+                            $tahunAwal = date('Y', strtotime($tanggalAwal));
+                            $groupedCoa = isset($coa)
+                                ? $coa->where('tahun', $tahunAwal)->groupBy('kategori_akun')
+                                : collect();
                         @endphp
 
                         @foreach ($groupedCoa as $kategori => $akunList)
@@ -110,7 +123,6 @@
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;">
                 </div>
             </div>
-
             <h4 class="mb-4"
                 style="border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; margin-top: 2.5rem; color: #1e293b; font-weight: 700; font-size: 1.1rem;">
                 Detail Nominal & Keterangan
@@ -127,7 +139,6 @@
                         <input type="text" name="mutasi_masuk" class="form-control money-format"
                             value="{{ old('mutasi_masuk') }}" placeholder="0,00"
                             style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; color: #059669; font-weight: 600; flex: 1;">
-
                     </div>
                 </div>
 
@@ -140,7 +151,6 @@
                         <input type="text" name="mutasi_keluar" class="form-control money-format"
                             value="{{ old('mutasi_keluar') }}" placeholder="0,00"
                             style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; color: #dc2626; font-weight: 600; flex: 1;">
-
                     </div>
                 </div>
 
@@ -186,21 +196,7 @@
 
     <script src="{{ asset('js/money-format.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var el = document.getElementById('select-coa');
-            if (el) {
-                new TomSelect(el, {
-                    create: false,
-                    sortField: {
-                        field: "text",
-                        direction: "asc"
-                    },
-                    maxOptions: 1000
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('js/dynamic-coa.js') }}"></script>
+    <script src="{{ asset('js/fetch-saldo.js') }}"></script>
 
 @endsection

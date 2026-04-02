@@ -73,15 +73,12 @@ class KeuanganController extends Controller
     {
         $projectId = session('active_project_id');
 
-        $cleanMoney = function($val) {
-            if (!$val) return 0;
-            $cleaned = str_replace(',', '.', str_replace('.', '', $val));
-            return is_numeric($cleaned) ? $cleaned : 0;
-        };
+        $cleanMasuk = parse_money($request->mutasi_masuk);
+        $cleanKeluar = parse_money($request->mutasi_keluar);
 
         $request->merge([
-            'mutasi_masuk' => $cleanMoney($request->mutasi_masuk),
-            'mutasi_keluar' => $cleanMoney($request->mutasi_keluar),
+            'mutasi_masuk'  => $cleanMasuk,
+            'mutasi_keluar' => $cleanKeluar,
         ]);
 
         $validated = $request->validate([
@@ -101,33 +98,108 @@ class KeuanganController extends Controller
             }
         }
 
-        $buktiPath = null;
-        if ($request->hasFile('bukti')) {
-            $buktiPath = $request->file('bukti')->store('bukti_transaksi', 'public');
-        }
+        DB::beginTransaction();
+        try {
+            $buktiPath = null;
+            if ($request->hasFile('bukti')) {
+                $buktiPath = $request->file('bukti')->store('bukti_transaksi', 'public');
+            }
 
-        $transaksi = Keuangan::create([
-            'project_id'       => $projectId,
-            'tanggal'          => $validated['tanggal'],
-            'input'            => $validated['input'],
-            'no_akun'          => $validated['no_akun'],
-            'jenis_penggunaan' => $validated['jenis_penggunaan'],
-            'keterangan'       => $validated['keterangan'],
-            'mutasi_masuk'     => $validated['mutasi_masuk'],
-            'mutasi_keluar'    => $validated['mutasi_keluar'],
-            'bukti'            => $buktiPath,
+            $transaksi = Keuangan::create([
+                'project_id'       => $projectId,
+                'tanggal'          => $validated['tanggal'],
+                'input'            => $validated['input'],
+                'no_akun'          => $validated['no_akun'],
+                'jenis_penggunaan' => $validated['jenis_penggunaan'],
+                'keterangan'       => $validated['keterangan'],
+                'mutasi_masuk'     => $validated['mutasi_masuk'],
+                'mutasi_keluar'    => $validated['mutasi_keluar'],
+                'bukti'            => $buktiPath,
+            ]);
+
+            $this->adjustBalances($transaksi, 'apply');
+
+            DB::commit();
+
+            if ($request->action === 'save_and_new') {
+                return redirect()->route('keuangan.create')
+                    ->withInput($request->only(['input', 'no_akun', 'tanggal']))
+                    ->with('success', 'Transaksi berhasil disimpan & Saldo telah disesuaikan.');
+            }
+
+            return redirect()->route('keuangan.index')
+                ->with('success', 'Transaksi keuangan berhasil dicatat & Saldo diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Gagal menyimpan transaksi: ' . $e->getMessage());
+        }
+    }
+
+    public function show(string $id)
+    {
+    }
+
+    public function edit($id)
+    {
+        $item = Keuangan::findOrFail($id);
+        $projectId = session('active_project_id');
+
+        $coa = Coa::where('project_id', $projectId)
+                    ->orderBy('no_akun', 'asc')
+                    ->get();
+
+        return view('keuangan.edit', compact('item', 'coa'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $transaksi = Keuangan::findOrFail($id);
+
+        $cleanMasuk = parse_money($request->mutasi_masuk);
+        $cleanKeluar = parse_money($request->mutasi_keluar);
+
+        $request->merge([
+            'mutasi_masuk'  => $cleanMasuk,
+            'mutasi_keluar' => $cleanKeluar,
         ]);
 
-        $this->adjustBalances($transaksi, 'apply');
+        $validated = $request->validate([
+            'tanggal'          => 'required|date',
+            'input'            => 'required|in:Kas Besar,Kas Kecil,Bank,Jurnal',
+            'no_akun'          => 'required|exists:coa,no_akun',
+            'mutasi_masuk'     => 'nullable|numeric',
+            'mutasi_keluar'    => 'nullable|numeric',
+            'keterangan'       => 'required|string',
+            'jenis_penggunaan' => 'nullable|string',
+            'bukti'            => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ]);
 
-        if ($request->action === 'save_and_new') {
-            return redirect()->route('keuangan.create')
-                ->withInput($request->only(['input', 'no_akun']))
-                ->with('success', 'Transaksi berhasil disimpan & Saldo telah disesuaikan.');
+        if (!in_array(Auth::user()?->role, ['Super_Admin', 'Admin_Keuangan'])) {
+            if (in_array($request->input, ['Kas Besar', 'Bank']) || in_array($transaksi->input, ['Kas Besar', 'Bank'])) {
+                return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki izin untuk mengedit transaksi terkait Kas Besar atau Bank.');
+            }
         }
 
-        return redirect()->route('keuangan.index')
-            ->with('success', 'Transaksi keuangan berhasil dicatat & Saldo diperbarui.');
+        DB::beginTransaction();
+        try {
+            $this->adjustBalances($transaksi, 'reverse');
+
+            if ($request->hasFile('bukti')) {
+                $validated['bukti'] = $request->file('bukti')->store('bukti_transaksi', 'public');
+            }
+
+            $transaksi->update($validated);
+
+            $this->adjustBalances($transaksi, 'apply');
+
+            DB::commit();
+            return redirect()->route('keuangan.index')->with('success', 'Transaksi diperbarui dan saldo telah disesuaikan!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Gagal memperbarui transaksi: ' . $e->getMessage());
+        }
     }
 
     public function createJurnal()
@@ -230,13 +302,13 @@ class KeuanganController extends Controller
         $projectId = session('active_project_id');
 
         $request->validate([
-            'bukti'                    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'tanggal_array'            => 'required|array|min:1',
-            'tanggal_array.*'          => 'required|date',
-            'no_akun_array'            => 'required|array|min:1',
-            'no_akun_array.*'          => 'required|exists:coa,no_akun',
-            'mutasi_debit_array'       => 'required|array',
-            'mutasi_kredit_array'      => 'required|array',
+            'bukti'               => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'tanggal_array'       => 'required|array|min:1',
+            'tanggal_array.*'     => 'required|date',
+            'no_akun_array'       => 'required|array|min:1',
+            'no_akun_array.*'     => 'required|exists:coa,no_akun',
+            'mutasi_debit_array'  => 'required|array',
+            'mutasi_kredit_array' => 'required|array',
         ]);
 
         $debitArray = array_map('parse_money', $request->mutasi_debit_array);
@@ -287,77 +359,12 @@ class KeuanganController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('keuangan.index')->with('success', 'Jurnal berhasil diperbarui!');
+            return redirect()->route('keuangan.index')->with('success', 'Jurnal berhasil diperbarui dan saldo disesuaikan!');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal memperbarui jurnal: ' . $e->getMessage());
         }
-    }
-
-    public function show(string $id)
-    {
-    }
-
-    public function edit($id)
-    {
-        $item = Keuangan::findOrFail($id);
-        $projectId = session('active_project_id');
-
-        $coa = Coa::where('project_id', $projectId)
-                    ->orderBy('no_akun', 'asc')
-                    ->get();
-
-        return view('keuangan.edit', compact('item', 'coa'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $transaksi = Keuangan::findOrFail($id);
-        $projectId = session('active_project_id');
-
-        $cleanMoney = function($val) {
-            if (!$val) return 0;
-            $cleaned = str_replace(',', '.', str_replace('.', '', $val));
-            return is_numeric($cleaned) ? (float) $cleaned : 0;
-        };
-
-        $cleanMasuk = $cleanMoney($request->mutasi_masuk);
-        $cleanKeluar = $cleanMoney($request->mutasi_keluar);
-
-        $request->merge([
-            'mutasi_masuk'  => $cleanMasuk,
-            'mutasi_keluar' => $cleanKeluar,
-        ]);
-
-        $validated = $request->validate([
-            'tanggal'          => 'required|date',
-            'input'            => 'required|in:Kas Besar,Kas Kecil,Bank,Jurnal',
-            'no_akun'          => 'required|exists:coa,no_akun',
-            'mutasi_masuk'     => 'nullable|numeric',
-            'mutasi_keluar'    => 'nullable|numeric',
-            'keterangan'       => 'required|string',
-            'jenis_penggunaan' => 'nullable|string',
-            'bukti'            => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
-
-        if (!in_array(Auth::user()?->role, ['Super_Admin', 'Admin_Keuangan'])) {
-            if (in_array($request->input, ['Kas Besar', 'Bank'])) {
-                return redirect()->back()->withInput()->with('error', 'Anda tidak memiliki izin untuk mengubah Kas Besar atau Bank.');
-            }
-        }
-
-        $this->adjustBalances($transaksi, 'reverse');
-
-        if ($request->hasFile('bukti')) {
-            $validated['bukti'] = $request->file('bukti')->store('bukti_transaksi', 'public');
-        }
-
-        $transaksi->update($validated);
-
-        $this->adjustBalances($transaksi, 'apply');
-
-        return redirect()->route('keuangan.index')->with('success', 'Transaksi diperbarui dan saldo telah disesuaikan!');
     }
 
     public function destroy($id)
@@ -387,37 +394,42 @@ class KeuanganController extends Controller
     private function adjustBalances($transaksi, $mode = 'apply')
     {
         $projectId = session('active_project_id');
-        $masuk = $transaksi->mutasi_masuk;
-        $keluar = $transaksi->mutasi_keluar;
+        $tahun = date('Y', strtotime($transaksi->tanggal));
+
+        $masuk = (float) $transaksi->mutasi_masuk;
+        $keluar = (float) $transaksi->mutasi_keluar;
 
         if ($mode === 'reverse') {
-            $masuk = -$transaksi->mutasi_masuk;
-            $keluar = -$transaksi->mutasi_keluar;
+            $masuk = -$masuk;
+            $keluar = -$keluar;
         }
 
         if ($transaksi->input !== 'Jurnal') {
             $dompet = Coa::where('project_id', $projectId)
+                ->where('tahun', $tahun)
                 ->where('nama_akun', 'LIKE', '%' . $transaksi->input . '%')
                 ->first();
 
-            if ($dompet) {
-                $dompet->saldo_akhir += $masuk;
-                $dompet->saldo_akhir -= $keluar;
+            if ($dompet && $dompet->jenis_laporan !== 'Laba Rugi') {
+                $dompet->saldo_akhir += ($masuk - $keluar);
                 $dompet->save();
             }
         }
 
         $lawan = Coa::where('project_id', $projectId)
+            ->where('tahun', $tahun)
             ->where('no_akun', $transaksi->no_akun)
             ->first();
 
-        if ($lawan) {
-            if ($masuk != 0) {
-                $lawan->saldo_akhir += ($lawan->posisi_normal == 'Kredit') ? $masuk : -$masuk;
+        if ($lawan && $lawan->jenis_laporan !== 'Laba Rugi') {
+
+            if ($transaksi->input === 'Jurnal') {
+                $lawan->saldo_akhir += ($masuk - $keluar);
+
+            } else {
+                $lawan->saldo_akhir += ($keluar - $masuk);
             }
-            if ($keluar != 0) {
-                $lawan->saldo_akhir += ($lawan->posisi_normal == 'Debit') ? $keluar : -$keluar;
-            }
+
             $lawan->save();
         }
     }
@@ -488,4 +500,56 @@ class KeuanganController extends Controller
         return redirect()->route('keuangan.pending')
             ->with('success', 'Transaksi Lead berhasil disetujui dan disimpan ke Keuangan!');
     }
+
+    public function getSaldoRealtime(Request $request)
+    {
+        $projectId = session('active_project_id');
+        $tanggal = $request->tanggal;
+        $tipeInput = $request->tipe_input;
+
+        if (!$projectId || !$tanggal || !$tipeInput) {
+            return response()->json(['saldo' => 0]);
+        }
+
+        $tahun = date('Y', strtotime($tanggal));
+
+        $noAkun = '';
+        if ($tipeInput === 'Kas Besar') $noAkun = '1101';
+        elseif ($tipeInput === 'Kas Kecil') $noAkun = '1102';
+        elseif ($tipeInput === 'Bank') $noAkun = '1103';
+
+        if (!$noAkun) {
+            return response()->json(['saldo' => 0]);
+        }
+
+        $coa = Coa::where('project_id', $projectId)
+            ->where('tahun', $tahun)
+            ->where('no_akun', $noAkun)
+            ->first();
+
+        return response()->json([
+            'saldo' => $coa ? (float)$coa->saldo_akhir : 0
+        ]);
+    }
+
+    public function getCoaByDate(Request $request)
+    {
+        $projectId = session('active_project_id');
+        $tanggal = $request->tanggal;
+
+        if (!$projectId || !$tanggal) {
+            return response()->json([]);
+        }
+
+        $tahun = date('Y', strtotime($tanggal));
+
+        $coas = Coa::where('project_id', $projectId)
+            ->where('tahun', $tahun)
+            ->orderBy('no_akun', 'asc')
+            ->get()
+            ->groupBy('kategori_akun');
+
+        return response()->json($coas);
+    }
 }
+

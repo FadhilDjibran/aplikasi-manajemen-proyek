@@ -42,12 +42,14 @@
                 Informasi Penempatan Dana
             </h4>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="transaction-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">Tanggal Pembukuan
                         <span style="color:red">*</span></label>
-                    <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', date('Y-m-d')) }}"
+
+                    <input type="date" name="tanggal" class="form-control date-trigger-coa"
+                        value="{{ old('tanggal', date('Y-m-d')) }}"
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;" required>
                 </div>
 
@@ -59,9 +61,9 @@
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; cursor: pointer;"
                         required>
                         <option value="">-- Pilih Penempatan Dana --</option>
-                        <option value="Kas Besar">Kas Besar</option>
-                        <option value="Kas Kecil">Kas Kecil</option>
-                        <option value="Bank">Bank</option>
+                        <option value="Kas Besar" {{ old('input') == 'Kas Besar' ? 'selected' : '' }}>Kas Besar</option>
+                        <option value="Kas Kecil" {{ old('input') == 'Kas Kecil' ? 'selected' : '' }}>Kas Kecil</option>
+                        <option value="Bank" {{ old('input') == 'Bank' ? 'selected' : '' }}>Bank</option>
                     </select>
                 </div>
 
@@ -71,12 +73,17 @@
                         Pilih Akun (CoA) <span style="color:red">*</span>
                     </label>
 
-                    <select name="no_akun" id="select-coa" class="form-control" required
-                        placeholder="-- Cari atau Pilih Akun --">
+                    <select name="no_akun" id="select-coa" class="form-control coa-select-dynamic"
+                        data-coa-url="{{ route('keuangan.get-coa') }}" required>
                         <option value="">-- Cari atau Pilih Akun --</option>
 
                         @php
-                            $groupedCoa = isset($coa) ? $coa->unique('no_akun')->groupBy('kategori_akun') : collect();
+                            // Ambil tahun dari input tanggal (atau hari ini)
+                            $tanggalAwal = old('tanggal', date('Y-m-d'));
+                            $tahunAwal = date('Y', strtotime($tanggalAwal));
+                            $groupedCoa = isset($coa)
+                                ? $coa->where('tahun', $tahunAwal)->groupBy('kategori_akun')
+                                : collect();
                         @endphp
 
                         @foreach ($groupedCoa as $kategori => $akunList)
@@ -97,7 +104,7 @@
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">Jenis
                         Penggunaan</label>
                     <input type="text" name="jenis_penggunaan" class="form-control"
-                        value="Pemasukan {{ $transaksiLead->jenis_pembayaran }}"
+                        value="{{ old('jenis_penggunaan', 'Pemasukan ' . $transaksiLead->jenis_pembayaran) }}"
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;">
                 </div>
             </div>
@@ -135,7 +142,7 @@
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">Keterangan
                         Transaksi <span style="color:red">*</span></label>
                     <textarea name="keterangan" class="form-control" rows="3" required
-                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;">Pembayaran {{ $transaksiLead->jenis_pembayaran }} dari Pelanggan: {{ $transaksiLead->lead->nama_lead ?? '' }}. {{ $transaksiLead->keterangan }}</textarea>
+                        style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;">{{ old('keterangan', 'Pembayaran ' . $transaksiLead->jenis_pembayaran . ' dari Pelanggan: ' . ($transaksiLead->lead->nama_lead ?? '') . '. ' . $transaksiLead->keterangan) }}</textarea>
                 </div>
             </div>
 
@@ -148,20 +155,7 @@
             </div>
         </form>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var el = document.getElementById('select-coa');
-            if (el) {
-                new TomSelect(el, {
-                    create: false,
-                    sortField: {
-                        field: "text",
-                        direction: "asc"
-                    },
-                    maxOptions: 1000
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('js/dynamic-coa.js') }}"></script>
 @endsection

@@ -42,14 +42,14 @@
                 Edit Informasi Transaksi
             </h4>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="transaction-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
 
                 <div class="form-group">
                     <label class="form-label"
                         style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">
                         Tanggal Transaksi <span style="color:red">*</span>
                     </label>
-                    <input type="date" name="tanggal" class="form-control"
+                    <input type="date" name="tanggal" class="form-control date-trigger-coa"
                         value="{{ old('tanggal', date('Y-m-d', strtotime($item->tanggal))) }}"
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;" required>
                 </div>
@@ -78,11 +78,17 @@
                         Pilih Akun (CoA) <span style="color:red">*</span>
                     </label>
 
-                    <select name="no_akun" id="select-coa" class="form-control" required>
+                    <select name="no_akun" id="select-coa" class="form-control coa-select-dynamic"
+                        data-coa-url="{{ route('keuangan.get-coa') }}" required>
                         <option value="">-- Pilih Akun --</option>
 
                         @php
-                            $groupedCoa = isset($coa) ? $coa->unique('no_akun')->groupBy('kategori_akun') : collect();
+                            // Ambil tahun dari tanggal transaksi (bukan tahun berjalan)
+                            $tanggalAwal = old('tanggal', date('Y-m-d', strtotime($item->tanggal)));
+                            $tahunAwal = date('Y', strtotime($tanggalAwal));
+                            $groupedCoa = isset($coa)
+                                ? $coa->where('tahun', $tahunAwal)->groupBy('kategori_akun')
+                                : collect();
                         @endphp
 
                         @foreach ($groupedCoa as $kategori => $akunList)
@@ -108,7 +114,6 @@
                         style="border-radius: 6px; border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem;">
                 </div>
             </div>
-
             <h4 class="mb-4"
                 style="border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; margin-top: 2.5rem; color: #1e293b; font-weight: 700; font-size: 1.1rem;">
                 Detail Nominal & Keterangan
@@ -193,19 +198,6 @@
     <script src="{{ asset('js/money-format.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var el = document.getElementById('select-coa');
-            if (el) {
-                new TomSelect(el, {
-                    create: false,
-                    sortField: {
-                        field: "text",
-                        direction: "asc"
-                    },
-                    maxOptions: 1000
-                });
-            }
-        });
-    </script>
+    <script src="{{ asset('js/dynamic-coa.js') }}"></script>
+
 @endsection

@@ -62,38 +62,46 @@
                         <tr style="background: #f8fafc; border-bottom: 2px solid #cbd5e1;">
                             <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 14%;">
                                 Tanggal <span style="color:red">*</span></th>
-                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 18%;">Akun
+                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 25%;">Akun
                                 (CoA) <span style="color:red">*</span></th>
-                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 14%;">Jenis
+                            <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 15%;">
                                 Penggunaan</th>
                             <th style="padding: 10px; text-align: left; color: #475569; font-weight: 700; width: 18%;">
                                 Keterangan <span style="color:red">*</span></th>
-                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 15%;">
+                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 12%;">
                                 Debit (Rp)</th>
-                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 15%;">
+                            <th style="padding: 10px; text-align: right; color: #475569; font-weight: 700; width: 12%;">
                                 Kredit (Rp)</th>
-                            <th style="padding: 10px; text-align: center; color: #475569; font-weight: 700; width: 6%;">#
+                            <th style="padding: 10px; text-align: center; color: #475569; font-weight: 700; width: 4%;">#
                             </th>
                         </tr>
                     </thead>
                     <tbody id="jurnal-body">
                         @foreach ($jurnalRows as $row)
-                            <tr class="jurnal-row" style="border-bottom: 1px solid #e2e8f0;">
+                            <tr class="jurnal-row transaction-container" style="border-bottom: 1px solid #e2e8f0;">
                                 <td style="padding: 8px;">
-                                    <input type="date" name="tanggal_array[]" class="form-control"
+                                    <input type="date" name="tanggal_array[]" class="form-control date-trigger-coa"
                                         value="{{ old('tanggal_array.' . $loop->index, \Carbon\Carbon::parse($row->tanggal)->format('Y-m-d')) }}"
                                         style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;"
                                         required>
                                 </td>
                                 <td style="padding: 8px;">
-                                    <select name="no_akun_array[]" class="form-control coa-select" required>
+                                    <select name="no_akun_array[]" class="form-control coa-select-dynamic"
+                                        data-coa-url="{{ route('keuangan.get-coa') }}" required>
                                         <option value="">-- Pilih Akun --</option>
-                                        @php $groupedCoa = isset($coa) ? $coa->unique('no_akun')->groupBy('kategori_akun') : collect(); @endphp
+
+                                        @php
+                                            $tahunTransaksi = \Carbon\Carbon::parse($row->tanggal)->format('Y');
+                                            $groupedCoa = isset($coa)
+                                                ? $coa->where('tahun', $tahunTransaksi)->groupBy('kategori_akun')
+                                                : collect();
+                                        @endphp
+
                                         @foreach ($groupedCoa as $kategori => $akunList)
                                             <optgroup label="{{ $kategori }}">
                                                 @foreach ($akunList as $item)
                                                     <option value="{{ $item->no_akun }}"
-                                                        {{ $row->no_akun == $item->no_akun ? 'selected' : '' }}>
+                                                        {{ old('no_akun_array.' . $loop->parent->index, $row->no_akun) == $item->no_akun ? 'selected' : '' }}>
                                                         {{ $item->no_akun }} - {{ $item->nama_akun }}
                                                     </option>
                                                 @endforeach
@@ -103,12 +111,14 @@
                                 </td>
                                 <td style="padding: 8px;">
                                     <input type="text" name="jenis_penggunaan_array[]" class="form-control"
-                                        value="{{ $row->jenis_penggunaan }}" placeholder="Opsional..."
+                                        value="{{ old('jenis_penggunaan_array.' . $loop->index, $row->jenis_penggunaan) }}"
+                                        placeholder="Opsional..."
                                         style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;">
                                 </td>
                                 <td style="padding: 8px;">
                                     <input type="text" name="keterangan_array[]" class="form-control"
-                                        value="{{ $row->keterangan }}" placeholder="Keterangan..."
+                                        value="{{ old('keterangan_array.' . $loop->index, $row->keterangan) }}"
+                                        placeholder="Keterangan..."
                                         style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;"
                                         required>
                                 </td>
@@ -116,9 +126,9 @@
                                     <div style="position: relative;">
                                         <input type="text" class="form-control input-debit money-format"
                                             value="{{ old('mutasi_debit_array.' . $loop->index, $row->mutasi_masuk) }}"
+                                            placeholder="0,00"
                                             style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #059669; font-weight: 600; font-size: 0.9rem;"
-                                            placeholder="0,00" required>
-
+                                            required>
                                         <input type="hidden" name="mutasi_debit_array[]"
                                             value="{{ old('mutasi_debit_array.' . $loop->index, $row->mutasi_masuk) }}">
                                     </div>
@@ -128,9 +138,9 @@
                                     <div style="position: relative;">
                                         <input type="text" class="form-control input-kredit money-format"
                                             value="{{ old('mutasi_kredit_array.' . $loop->index, $row->mutasi_keluar) }}"
+                                            placeholder="0,00"
                                             style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #dc2626; font-weight: 600; font-size: 0.9rem;"
-                                            placeholder="0,00" required>
-
+                                            required>
                                         <input type="hidden" name="mutasi_kredit_array[]"
                                             value="{{ old('mutasi_kredit_array.' . $loop->index, $row->mutasi_keluar) }}">
                                     </div>
@@ -189,14 +199,16 @@
     </div>
 
     <template id="row-template">
-        <tr class="jurnal-row" style="border-bottom: 1px solid #e2e8f0;">
+        <tr class="jurnal-row transaction-container" style="border-bottom: 1px solid #e2e8f0;">
             <td style="padding: 8px;">
-                <input type="date" name="tanggal_array[]" class="form-control"
+                <input type="date" name="tanggal_array[]" class="form-control date-trigger-coa"
                     style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;"
                     required>
             </td>
+
             <td style="padding: 8px;">
-                <select name="no_akun_array[]" class="form-control coa-select-new" required>
+                <select name="no_akun_array[]" class="form-control coa-select-dynamic"
+                    data-coa-url="{{ route('keuangan.get-coa') }}" required>
                     <option value="">-- Pilih Akun --</option>
                     @foreach ($groupedCoa as $kategori => $akunList)
                         <optgroup label="{{ $kategori }}">
@@ -208,25 +220,32 @@
                     @endforeach
                 </select>
             </td>
+
             <td style="padding: 8px;">
                 <input type="text" name="jenis_penggunaan_array[]" class="form-control" placeholder="Opsional..."
                     style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;">
             </td>
+
             <td style="padding: 8px;">
                 <input type="text" name="keterangan_array[]" class="form-control" placeholder="Keterangan..."
                     style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; font-size: 0.85rem;"
                     required>
             </td>
-            <td style="padding: 8px;">
-                <input type="text" name="mutasi_debit_array[]" class="form-control input-debit" value="0"
+
+            <td style="padding: 8px; position: relative;">
+                <input type="text" class="form-control input-debit money-format" value="0,00" placeholder="0,00"
                     style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #059669; font-weight: 600; font-size: 0.9rem;"
                     required>
+                <input type="hidden" name="mutasi_debit_array[]" value="0">
             </td>
-            <td style="padding: 8px;">
-                <input type="text" name="mutasi_kredit_array[]" class="form-control input-kredit" value="0"
+
+            <td style="padding: 8px; position: relative;">
+                <input type="text" class="form-control input-kredit money-format" value="0,00" placeholder="0,00"
                     style="border-radius: 4px; border: 1px solid #cbd5e1; padding: 0.4rem; width: 100%; text-align: right; color: #dc2626; font-weight: 600; font-size: 0.9rem;"
                     required>
+                <input type="hidden" name="mutasi_kredit_array[]" value="0">
             </td>
+
             <td style="padding: 8px; text-align: center;">
                 <button type="button" class="btn-remove-row"
                     style="background: #fee2e2; color: #dc2626; border: none; border-radius: 4px; padding: 0.3rem 0.6rem; cursor: pointer; font-weight: bold;">×</button>
@@ -237,4 +256,5 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script src="{{ asset('js/money-format.js') }}"></script>
     <script src="{{ asset('js/jurnal-handler.js') }}"></script>
+    <script src="{{ asset('js/dynamic-coa.js') }}"></script>
 @endsection

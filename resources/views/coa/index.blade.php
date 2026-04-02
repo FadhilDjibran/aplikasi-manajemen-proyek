@@ -120,8 +120,8 @@
                         <input type="hidden" name="tahun_asal" value="{{ $tahun ?? date('Y') }}">
                         <input type="hidden" name="tahun_tujuan" value="{{ ($tahun ?? date('Y')) + 1 }}">
 
-                        <button type="submit" class="btn"
-                            style="height: 40px; border-radius: 8px; font-weight: 600; background: #f59e0b; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; border: none; cursor: pointer;">
+                        <button type="submit" class="btn btn-primary"
+                            style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
                             <i class="fas fa-copy"></i> Rollover
                         </button>
                     </form>
@@ -293,6 +293,26 @@
                     }
                 });
             }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const scrollPos = sessionStorage.getItem('coa_table_scroll');
+
+            if (scrollPos) {
+                window.scrollTo({
+                    top: parseInt(scrollPos),
+                    behavior: 'instant'
+                });
+            }
+
+            let scrollTimeout;
+            window.addEventListener('scroll', function() {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(function() {
+                    sessionStorage.setItem('coa_table_scroll', window.scrollY);
+                }, 100);
+            });
         });
     </script>
 @endsection

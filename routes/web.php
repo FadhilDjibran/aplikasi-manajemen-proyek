@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('project.active')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::middleware('role:Super_Admin,Admin_Keuangan,Keuangan')->group(function () {
+            Route::get('/keuangan/get-saldo-realtime', [KeuanganController::class, 'getSaldoRealtime'])->name('keuangan.get-saldo');
+            Route::get('/keuangan/get-coa-by-date', [KeuanganController::class, 'getCoaByDate'])->name('keuangan.get-coa');
             Route::resource('coa', CoaController::class);
             Route::resource('keuangan', KeuanganController::class);
             Route::get('/keuangan/pending-approvals', [KeuanganController::class, 'pendingApprovals'])->name('keuangan.pending');

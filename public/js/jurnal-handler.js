@@ -148,12 +148,21 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.addEventListener('blur', function (e) {
         if (e.target.classList.contains('input-debit') || e.target.classList.contains('input-kredit') || e.target.classList.contains('money-format')) {
 
-            let finalValue = formatToDisplay(e.target.value);
-            e.target.value = finalValue;
+            const inputVisual = e.target;
+            const inputHidden = inputVisual.parentElement.querySelector('input[type="hidden"]');
 
-            let hiddenInput = e.target.parentElement.querySelector('input[type="hidden"]');
-            if (hiddenInput) {
-                hiddenInput.value = cleanMoney(finalValue);
+            let finalValue;
+
+            if (inputVisual.value.trim() === '') {
+                finalValue = '0,00';
+            } else {
+                finalValue = formatToDisplay(inputVisual.value);
+            }
+
+            inputVisual.value = finalValue;
+
+            if (inputHidden) {
+                inputHidden.value = cleanMoney(finalValue);
             }
 
             calculateBalance();
@@ -209,8 +218,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const clone = template.content.cloneNode(true);
             const body = document.getElementById('jurnal-body');
-
             const rows = body.querySelectorAll('.jurnal-row');
+
             if (rows.length > 0) {
                 const lastRow = rows[rows.length - 1];
                 const prevTanggal = lastRow.querySelector('input[name="tanggal_array[]"]')?.value;
@@ -222,20 +231,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (prevKeterangan) clone.querySelector('input[name="keterangan_array[]"]').value = prevKeterangan;
             }
 
-            const newSelect = clone.querySelector('.coa-select-new');
-            if (newSelect) {
-                newSelect.classList.remove('coa-select-new');
-                newSelect.classList.add('coa-select');
-            }
-
             body.appendChild(clone);
 
-            const addedSelect = body.lastElementChild.querySelector('.coa-select');
-            if (addedSelect) {
-                initTomSelect(addedSelect);
+            const newRow = body.lastElementChild;
+
+            const newSelect = newRow.querySelector('.coa-select-dynamic');
+            if (newSelect && typeof window.initTomSelectCoa === 'function') {
+                window.initTomSelectCoa(newSelect);
             }
 
-            calculateBalance();
+            if (typeof calculateBalance === 'function') {
+                calculateBalance();
+            }
         });
     }
 

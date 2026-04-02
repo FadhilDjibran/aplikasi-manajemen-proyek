@@ -157,7 +157,7 @@
             <div style="display: flex; gap: 8px; flex-shrink: 0;">
                 <a href="{{ route('keuangan.create') }}" class="btn btn-primary"
                     style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
-                    <i class="fas fa-plus"></i> Tambah Transaksi
+                    <i class="fas fa-plus"></i> Transaksi Kas
                 </a>
             </div>
 
@@ -165,7 +165,7 @@
                 <div style="display: flex; gap: 8px; flex-shrink: 0;">
                     <a href="{{ route('jurnal.create') }}" class="btn btn-primary"
                         style="height: 40px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 1rem; white-space: nowrap;">
-                        <i class="fas fa-plus"></i> Tambah Jurnal
+                        <i class="fas fa-plus"></i> Transaksi Non-Kas
                     </a>
                 </div>
             @endif
